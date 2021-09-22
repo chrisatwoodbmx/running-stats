@@ -1,16 +1,21 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import Activity from '@/models/Activity';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    activity: {},
+    activityData: {},
     progress: 0,
+    activity: {} as Activity,
   },
   mutations: {
-    addActivity(state, data: any) {
-      state.activity = data;
+    addActivityData(state, data: any) {
+      state.activityData = data;
+    },
+    addActivity(state, activity: Activity) {
+      state.activity = activity;
     },
     addProgress(state, progress: number) {
       console.log(progress);

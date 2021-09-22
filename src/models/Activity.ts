@@ -26,6 +26,12 @@ export default class Activity {
     this.endTime = DateTime.fromISO(time);
   }
 
+  public coordinates() {
+    const latLongs: number[][] = [];
+    this.points.forEach((point) => latLongs.push(point.lngLat()));
+    return latLongs;
+  }
+
   public toObj() {
     return {
       name: this.name,

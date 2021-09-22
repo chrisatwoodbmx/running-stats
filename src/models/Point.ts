@@ -23,6 +23,14 @@ export default class Point {
     if (extras.heartRate) this.HR = extras.heartRate;
   }
 
+  public latLng() {
+    return [this.lat, this.long];
+  }
+
+  public lngLat() {
+    return [this.long, this.lat];
+  }
+
   toString(timestamp = false): string {
     return `${timestamp ? `${this.timestamp.toISO()}:` : ''}${this.lat},${this.long}`;
   }
