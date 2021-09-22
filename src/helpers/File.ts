@@ -2,10 +2,10 @@ import parser from 'fast-xml-parser';
 import he from 'he';
 
 export const FXPOptions = {
-  attributeNamePrefix: '@_',
-  attrNodeName: 'attr', // default is 'false'
+  attributeNamePrefix: '',
+  attrNodeName: 'attributes', // default is 'false'
   textNodeName: '#text',
-  ignoreAttributes: true,
+  ignoreAttributes: false,
   ignoreNameSpace: false,
   allowBooleanAttributes: false,
   parseNodeValue: true,
