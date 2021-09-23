@@ -67,8 +67,12 @@ export default class Point {
    * Calculate diffs to the next segment
    * @param nextPoint
    */
-  public compareNext(nextPoint: Point, elapsed: { time: Duration; distance: number }): void {
-    this.setDistance(nextPoint);
+  public compareNext(
+    worker: Worker,
+    nextPoint: Point,
+    elapsed: { time: Duration; distance: number },
+  ): void {
+    this.setDistance(worker, nextPoint);
     this.setDistanceFromStart(elapsed.distance);
 
     this.setDuration(nextPoint);
@@ -94,13 +98,23 @@ export default class Point {
     this.speed = speedInMeters;
   }
 
-  private setDistance(nextPoint: Point) {
-    const lat1 = (this.lat * Math.PI) / 180;
-    const lat2 = (nextPoint.lat * Math.PI) / 180;
-    const deltaLat = ((nextPoint.lat - this.lat) * Math.PI) / 180;
-    const deltaLong = ((nextPoint.long - this.long) * Math.PI) / 180;
+  private setDistance(worker: Worker, nextPoint: Point) {
+    console.log(worker);
+    if (worker !== null) {
+      worker.postMessage({
+        lat1: this.lat,
+        lat2: nextPoint.lat,
+        long1: this.long,
+        long2: nextPoint.long,
+        nextPoint,
+      });
 
-    this.distance = DistanceByHaversine(lat1, lat2, deltaLat, deltaLong);
+      // eslint-disable-next-line no-param-reassign
+      worker.onmessage = (evt) => {
+        console.log(evt.data);
+        this.distance = evt.data;
+      };
+    }
   }
 
   private setDuration(nextPoint: Point) {

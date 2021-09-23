@@ -125,17 +125,15 @@ export default Vue.extend({
             .setHTML(popupContent)
             .addTo(this.map);
         });
-        // Geographic coordinates of the LineString
-        const { coordinates } = geojson.features[0].geometry;
 
         // Create a 'LngLatBounds' with both corners at the first coordinate.
-        const bounds = new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]);
+        const bounds = new mapboxgl.LngLatBounds();
 
         // Extend the 'LngLatBounds' to include every coordinate in the bounds result.
         // eslint-disable-next-line no-restricted-syntax
-        for (const coord of coordinates) {
-          bounds.extend(coord);
-        }
+        geojson.features.forEach((feature) => {
+          bounds.extend(feature.geometry.coordinates);
+        });
 
         this.map.fitBounds(bounds, {
           padding: 20,

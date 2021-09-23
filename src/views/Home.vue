@@ -5,10 +5,9 @@
       <VRow>
         <VCol md="8">
           <Map :activity="activity" />
+          <LineChart :options="speedChart" style="height: 300px" />
         </VCol>
-        <VCol md="4">
-          <LineChart :options="speedChart" />
-        </VCol>
+        <VCol md="12"> </VCol>
       </VRow>
     </VContainer>
   </div>
@@ -17,6 +16,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'vuex';
+import * as Highcharts from 'highcharts';
 import { readFile } from '../helpers/File';
 import Point from '@/models/Point';
 import Activity from '@/models/Activity';
@@ -35,7 +35,7 @@ export default Vue.extend({
       options: {
         elements: { point: { radius: 0 } },
       },
-      speedChart: {} as HighchartChart,
+      speedChart: {} as Highcharts.Options,
     };
   },
   components: { Map, LineChart },
@@ -49,6 +49,17 @@ export default Vue.extend({
       this.readFile(newVal);
     },
   },
+  mounted() {
+    const file = window.localStorage.getItem('file');
+    if (file !== null) {
+      this.processing = true;
+      this.progress = 100;
+      this.$store.commit('addProgress', 100);
+      this.$store.commit('addActivityData', JSON.parse(file));
+      this.printPoints();
+      this.processing = false;
+    }
+  },
   methods: {
     async readFile(file: File) {
       const reader = new FileReader();
@@ -59,7 +70,9 @@ export default Vue.extend({
         }
       });
 
-      this.$store.commit('addActivityData', await readFile(file, reader));
+      const routeJSON = await readFile(file, reader);
+      window.localStorage.setItem('file', JSON.stringify(routeJSON));
+      this.$store.commit('addActivityData', routeJSON);
       this.printPoints();
     },
     printPoints() {
@@ -103,6 +116,10 @@ export default Vue.extend({
             text: 'km/hour',
           },
         },
+        tooltip: {
+          valueDecimals: 2,
+          valueSuffix: 'KM/h',
+        },
         series: [
           { type: 'area', data: activity.graphs.speed.map((point) => toKMPerHour(point.y)) },
         ],
@@ -132,16 +149,15 @@ export default Vue.extend({
                 lineWidth: 1,
               },
             },
-            series: {
-              lineColor: 'rgba(52, 182, 240, 1)',
-            },
             threshold: null,
+          },
+          series: {
+            borderColor: 'rgba(52, 182, 240, 1)',
           },
         },
       };
 
       this.proccessed = true;
-      console.log(activity.toObj());
     },
   },
 });

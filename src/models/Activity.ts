@@ -93,10 +93,12 @@ export default class Activity {
   }
 
   public processPoints(): void {
+    const worker = new Worker('/workers/pace.js');
+
     this.points.forEach((point, i) => {
       if (i === this.points.length - 1) return;
 
-      point.compareNext(this.points[i + 1], {
+      point.compareNext(worker, this.points[i + 1], {
         time: this.elapsedDuration,
         distance: this.elapsedDistance,
       });
