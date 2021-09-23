@@ -24,11 +24,31 @@ export interface GraphItem {
   x: number;
 }
 
-export interface MapFeatures {
-  type: string;
-  properties: { [index: string]: string | number };
-  geometry: {
-    type: string | Feature<Geometry, GeoJsonProperties>;
-    coordinates: [Lat, Long][];
+export interface HighchartChart {
+  chart: { zoomType: string };
+  xAxis: { categories: string[] };
+  series: { data: number[] }[];
+  plotOptions: {
+    area: {
+      fillColor: {
+        linearGradient: {
+          x1: number;
+          y1: number;
+          x2: number;
+          y2: number;
+        };
+        stops: any;
+      };
+      marker: {
+        radius: number;
+      };
+      lineWidth: number;
+      states: {
+        hover: {
+          lineWidth: number;
+        };
+      };
+      threshold: null;
+    };
   };
 }

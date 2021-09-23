@@ -20,6 +20,7 @@ import { mapState } from 'vuex';
 import { readFile } from '../helpers/File';
 import Point from '@/models/Point';
 import Activity from '@/models/Activity';
+import { HighchartChart } from '@/models/Activity.d';
 import Map from '@/components/Map.vue';
 import LineChart from '@/components/graphs/Line.vue';
 import { toKM, toKMPerHour } from '@/helpers/Units';
@@ -34,11 +35,7 @@ export default Vue.extend({
       options: {
         elements: { point: { radius: 0 } },
       },
-      speedChart: {} as {
-        zoomType: string;
-        xAxis: { categories: string[] };
-        series: { data: number[] }[];
-      },
+      speedChart: {} as HighchartChart,
     };
   },
   components: { Map, LineChart },
@@ -94,11 +91,39 @@ export default Vue.extend({
       this.$store.commit('addActivity', activity);
 
       this.speedChart = {
-        zoomType: 'xy',
+        chart: { zoomType: 'x' },
         xAxis: {
           categories: activity.graphs.speed.map((point) => point.time),
         },
-        series: [{ data: activity.graphs.speed.map((point) => toKMPerHour(point.y)) }],
+        series: [
+          { type: 'area', data: activity.graphs.speed.map((point) => toKMPerHour(point.y)) },
+        ],
+        plotOptions: {
+          area: {
+            fillColor: {
+              linearGradient: {
+                x1: 0,
+                y1: 0,
+                x2: 0,
+                y2: 1,
+              },
+              stops: [
+                [0, 'rgba(52, 182, 240, 1)'],
+                [1, 'rgba(52, 182, 240, 0)'],
+              ],
+            },
+            marker: {
+              radius: 2,
+            },
+            lineWidth: 1,
+            states: {
+              hover: {
+                lineWidth: 1,
+              },
+            },
+            threshold: null,
+          },
+        },
       };
 
       this.proccessed = true;
