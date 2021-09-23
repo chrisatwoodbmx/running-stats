@@ -29,6 +29,8 @@ export interface HighchartChart {
   xAxis: { title: { text?: string }; categories: string[] };
   yAxis: { title: { text?: string } };
   series: { name?: string; type: string; data: number[] }[];
+
+  legend: { enabled?: boolean };
   plotOptions: {
     area: {
       fillColor: {
