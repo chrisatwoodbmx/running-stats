@@ -1,15 +1,17 @@
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import Point from './Point';
 import { Lat, Long } from './Point.d';
-import { AverageObj, HRAverage } from '@/models/Activity.d';
-import { toKM, toKMPerHour } from '@/helpers/Units';
+import { AverageObj, HRAverage, GraphItem } from '@/models/Activity.d';
+import { formatTime } from '@/helpers/Units';
 
 export default class Activity {
   public points!: Point[];
 
   public name: string;
 
-  public distance!: number;
+  public elapsedDistance: number;
+
+  public elapsedDuration: Duration;
 
   public HR!: HRAverage;
 
@@ -31,18 +33,26 @@ export default class Activity {
     decent: number;
   };
 
+  public graphs!: {
+    HR: GraphItem[];
+    cadence: GraphItem[];
+    elevation: GraphItem[];
+    speed: GraphItem[];
+    pace: GraphItem[];
+  };
+
   constructor(name: string) {
     this.name = name;
 
     const currentTime = DateTime.local();
     this.time = { total: currentTime, start: currentTime, end: currentTime };
-    this.pace = { min: Infinity, avg: -1, max: -1 };
-    this.cadence = { min: Infinity, avg: -1, max: -1 };
-    this.speed = { min: Infinity, avg: -1, max: -1 };
+    this.pace = { min: { value: Infinity }, avg: -1, max: { value: -1 } };
+    this.cadence = { min: { value: Infinity }, avg: -1, max: { value: -1 } };
+    this.speed = { min: { value: Infinity }, avg: -1, max: { value: -1 } };
     this.HR = {
-      min: -1,
+      min: { value: -1 },
       avg: -1,
-      max: -1,
+      max: { value: -1 },
       zones: {
         1: 0,
         2: 0,
@@ -51,6 +61,17 @@ export default class Activity {
         5: 0,
       },
     };
+
+    this.graphs = {
+      HR: [],
+      cadence: [],
+      elevation: [],
+      speed: [],
+      pace: [],
+    };
+
+    this.elapsedDistance = 0;
+    this.elapsedDuration = Duration.fromMillis(0);
   }
 
   public setPoints(points: Point[]): void {
@@ -75,20 +96,24 @@ export default class Activity {
     this.points.forEach((point, i) => {
       if (i === this.points.length - 1) return;
 
-      point.compareNext(this.points[i + 1], { distance: this.distance });
+      point.compareNext(this.points[i + 1], {
+        time: this.elapsedDuration,
+        distance: this.elapsedDistance,
+      });
 
-      this.distance += point.distance;
+      this.elapsedDistance += point.distance;
+      this.elapsedDuration = point.durationFromStart;
     });
 
     this.processAverages();
   }
 
-  public toObj() {
+  public toObj(): any {
     return {
       name: this.name,
       points: this.points,
       time: this.time,
-      distance: this.distance,
+      distance: this.elapsedDistance,
       HR: this.HR,
       pace: this.pace,
       speed: this.speed,
@@ -98,62 +123,69 @@ export default class Activity {
   }
 
   private processAverages(): void {
-    this.setAverageSpeed();
-    this.setAveragePace();
-  }
+    this.points.forEach((point) => {
+      /* Speed */
 
-  private setAverageSpeed() {
-    const total = 0;
-    const totalItems = 0;
+      const time = formatTime(point.durationFromStart, false);
 
-    let fastestPoint: Point | undefined;
-    let slowestPoint: Point | undefined;
-
-    const speeds: number[] = [];
-
-    this.points.forEach((point, i) => {
-      if (Number.isNaN(point.speed)) return;
-      speeds.push(point.speed);
-
-      if (point.speed !== 0 && point.speed < this.speed.min) {
-        slowestPoint = point;
-        this.speed.min = point.speed;
-      }
-      if (point.speed > this.speed.max) {
-        fastestPoint = point;
-        this.speed.max = point.speed;
-        console.log(i);
-      }
+      this.processSpeed(point, time);
+      this.processPace(point, time);
     });
 
-    if (fastestPoint !== undefined) fastestPoint.isFastest();
-    if (slowestPoint !== undefined) slowestPoint.isSlowest();
+    const totalSpeed = this.graphs.speed.reduce((acc, val) => acc + val.y, 0);
+    this.speed.avg = totalSpeed / this.graphs.speed.length;
+    console.log(this.speed.avg);
+    const totalPace = this.graphs.pace.reduce((acc, val) => acc + val.y, 0);
+    this.pace.avg = totalPace / this.graphs.pace.length;
 
-    this.speed.avg = speeds.reduce((acc, val) => acc + val, 0) / speeds.length;
+    this.setSpeedBand();
+  }
 
-    /* Set speed bands */
-    const totalBands = 5;
-    const bucket = (this.speed.max - this.speed.min) / 100;
+  private processSpeed(point: Point, time: string) {
+    if (Number.isNaN(point.speed)) return;
+
+    this.graphs.speed.push({
+      time,
+      y: point.speed,
+      x: point.durationFromStart.as('seconds'),
+    });
+
+    if (point.speed !== 0 && point.speed > this.speed.min.value) {
+      this.speed.max.point = point;
+      this.speed.max.value = point.speed;
+    }
+    if (point.speed < this.speed.min.value) {
+      this.speed.min.point = point;
+      this.speed.min.value = point.speed;
+    }
+  }
+
+  private setSpeedBand() {
+    const bucket = (this.speed.min.value - this.speed.max.value) / 100;
 
     this.points.forEach((point) => {
       point.setSpeedBand(bucket);
     });
   }
 
-  private setAveragePace() {
-    const paces = this.points.map((point) => point.pace).filter((pace) => !Number.isNaN(pace));
+  private processPace(point: Point, time: string) {
+    if (Number.isNaN(point.pace)) return;
 
-    let totalPaces = 0;
-
-    paces.forEach((pace) => {
-      totalPaces += pace;
-
-      if (pace !== 0 && pace < this.pace.min) this.pace.min = pace;
-      if (pace > this.pace.max) this.pace.max = pace;
+    this.graphs.pace.push({
+      time,
+      y: point.pace,
+      x: point.durationFromStart.as('seconds'),
     });
-    const currentTime = DateTime.local();
-    console.log(totalPaces, paces.length);
-    this.pace.avg = totalPaces / paces.length;
+
+    if (point.pace !== 0 && point.pace > this.pace.min.value) {
+      this.pace.max.point = point;
+      this.speed.max.value = point.pace;
+    }
+    if (point.pace < this.pace.min.value) {
+      this.pace.min.point = point;
+      this.pace.min.value = point.pace;
+    }
+
     // const diff = currentTime.plus({ seconds: this.pace.avg }).diff(currentTime);
 
     // const diffMin = currentTime.plus({ seconds: this.pace.min }).diff(currentTime);

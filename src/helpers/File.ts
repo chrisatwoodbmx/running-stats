@@ -20,13 +20,13 @@ export const FXPOptions = {
     skipLike: /\+[0-9]{10}/,
   },
   arrayMode: false,
-  attrValueProcessor: (val: unknown) => he.decode(val, { isAttributeValue: true }),
-  tagValueProcessor: (val: unknown) => he.decode(val),
+  attrValueProcessor: (val: string): string => he.decode(val, { isAttributeValue: true }),
+  tagValueProcessor: (val: string): string => he.decode(val),
   stopNodes: ['parse-me-as-string'],
 };
 
-export async function readFile(file: File, reader: FileReader) {
-  return new Promise((resolve, reject) => {
+export async function readFile(file: File, reader: FileReader): Promise<any> {
+  return new Promise((resolve) => {
     reader.addEventListener('load', (event) => {
       if (event?.target?.result === undefined || event?.target?.result === null) return;
       const strFile = event.target.result.toString();

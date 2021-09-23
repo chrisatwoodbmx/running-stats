@@ -18,6 +18,8 @@ export default class Point {
 
   public duration?: Duration;
 
+  public durationFromStart: Duration;
+
   public distanceFromStart: number;
 
   /* Pace in seconds */
@@ -42,6 +44,7 @@ export default class Point {
     this.speed = 0;
     this.speedBand = 1;
     this.distanceFromStart = 0;
+    this.durationFromStart = Duration.fromMillis(0);
     this.distance = 0;
     this.fastest = false;
     this.slowest = false;
@@ -64,10 +67,13 @@ export default class Point {
    * Calculate diffs to the next segment
    * @param nextPoint
    */
-  public compareNext(nextPoint: Point, elapsed: { distance: number }): void {
+  public compareNext(nextPoint: Point, elapsed: { time: Duration; distance: number }): void {
     this.setDistance(nextPoint);
+    this.setDistanceFromStart(elapsed.distance);
+
     this.setDuration(nextPoint);
-    this.setDurationFromStart(elapsed.distance);
+    this.setDurationFromStart(elapsed.time);
+
     this.setPace();
     this.setSpeed();
   }
@@ -101,19 +107,29 @@ export default class Point {
     this.duration = nextPoint.timestamp.diff(this.timestamp);
   }
 
-  private setDurationFromStart(elapsedDuration: number) {
-    this.distanceFromStart = elapsedDuration + this.distance;
+  private setDurationFromStart(elapsedDuration?: Duration) {
+    if (this.duration === undefined) {
+      this.durationFromStart = Duration.fromObject({ seconds: 0 });
+    } else if (elapsedDuration === undefined) {
+      this.durationFromStart = this.duration;
+    } else {
+      this.durationFromStart = elapsedDuration.plus(this.duration.toObject());
+    }
   }
 
-  public isSlowest() {
+  private setDistanceFromStart(elapsedDistance: number) {
+    this.distanceFromStart = elapsedDistance + this.distance;
+  }
+
+  public isSlowest(): void {
     this.slowest = true;
   }
 
-  public isFastest() {
+  public isFastest(): void {
     this.fastest = true;
   }
 
-  public setSpeedBand(unit: number) {
+  public setSpeedBand(unit: number): void {
     this.speedBand = this.speed / unit / 100;
   }
 

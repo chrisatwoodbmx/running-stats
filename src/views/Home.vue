@@ -1,8 +1,16 @@
 <template>
   <div>
     <VFileInput v-model="file" truncate-length="15" show-size :loading="processing" />
-
-    <Map v-if="proccessed" :activity="activity" />
+    <VContainer v-if="proccessed">
+      <VRow>
+        <VCol md="8">
+          <Map :activity="activity" />
+        </VCol>
+        <VCol md="4">
+          <LineChart :options="speedChart" />
+        </VCol>
+      </VRow>
+    </VContainer>
   </div>
 </template>
 
@@ -13,6 +21,8 @@ import { readFile } from '../helpers/File';
 import Point from '@/models/Point';
 import Activity from '@/models/Activity';
 import Map from '@/components/Map.vue';
+import LineChart from '@/components/graphs/Line.vue';
+import { toKM, toKMPerHour } from '@/helpers/Units';
 
 export default Vue.extend({
   name: 'Home',
@@ -21,9 +31,18 @@ export default Vue.extend({
       file: null as File | null,
       processing: false,
       proccessed: false,
+      options: {
+        elements: { point: { radius: 0 } },
+      },
+      speedChart: {} as {
+        zoomType: string;
+        xAxis: { categories: number[]; text: 'Time' };
+        yAxis: { text: 'Km/h' };
+        series: { data: number[]; title: 'Speed' }[];
+      },
     };
   },
-  components: { Map },
+  components: { Map, LineChart },
   computed: mapState(['activityData', 'activity', 'progress']),
 
   watch: {
@@ -74,6 +93,16 @@ export default Vue.extend({
 
       activity.processPoints();
       this.$store.commit('addActivity', activity);
+
+      this.speedChart = {
+        zoomType: 'xy',
+        xAxis: {
+          categories: activity.graphs.speed.map((point) => point.time),
+          text: 'Time',
+        },
+        series: [{ data: activity.graphs.speed.map((point) => toKMPerHour(point.y)) }],
+      };
+
       this.proccessed = true;
       console.log(activity.toObj());
     },

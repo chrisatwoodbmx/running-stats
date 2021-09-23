@@ -23,8 +23,8 @@ export default Vue.extend({
       location: '',
       access_token:
         'pk.eyJ1IjoiY2hyaXNhdHdvb2RibXgiLCJhIjoiY2pxcXI1cm91MGUwZTQzcGY4MTVzOGlteCJ9.XoKxWoArb_EWpt_xdrLlWQ',
-      center: [0, 0],
-      map: {},
+      center: [0, 0] as [number, number],
+      map: {} as any,
     };
   },
   mounted() {
@@ -34,6 +34,7 @@ export default Vue.extend({
     async createMap() {
       try {
         mapboxgl.accessToken = this.access_token;
+
         this.map = new mapboxgl.Map({
           container: 'map',
           style: 'mapbox://styles/mapbox/streets-v11',
@@ -43,11 +44,11 @@ export default Vue.extend({
 
         const geocoder = new MapboxGeocoder({
           accessToken: this.access_token,
-          mapboxgl,
+          mapboxgl: this.map,
           marker: false,
         });
 
-        geocoder.on('result', (e) => {
+        geocoder.on('result', (e: any) => {
           const marker = new mapboxgl.Marker({
             draggable: true,
             color: '#D80739',
@@ -58,13 +59,13 @@ export default Vue.extend({
           this.center = e.result.center;
 
           marker.on('dragend', () => {
-            this.center = Object.values(e.target.getLngLat());
+            this.center = e.target.getLngLat() as [number, number];
           });
         });
 
         const geojson = {
           type: 'FeatureCollection',
-          features: [],
+          features: [] as any[],
         };
 
         this.activity.points.forEach((point, index) => {
@@ -79,6 +80,7 @@ export default Vue.extend({
                 speedColour: hsl,
                 speed: point.speed,
                 speedBand: point.speedBand,
+                index,
               },
               geometry: {
                 type: 'LineString',
@@ -87,9 +89,6 @@ export default Vue.extend({
             });
           }
         });
-
-        console.log(geojson);
-
         this.map.on('load', () => {
           this.map.addSource('route', {
             type: 'geojson',
@@ -106,24 +105,24 @@ export default Vue.extend({
               'line-cap': 'round',
             },
             paint: {
-              // 'line-gradient': [
-              //   'interpolate',
-              //   ['linear'],
-              //   ['line-progress'],
-              //   0,
-              //   ['get', 'speedColour'],
-              //   1,
-              //   ['get', 'nextSpeedColour'],
-              // ],
               'line-color': ['get', 'speedColour'],
               'line-width': 4,
             },
           });
         });
-        this.map.on('click', 'route', (e) => {
+        this.map.on('click', 'route', (e: any) => {
+          let popupContent = '';
+
+          if (e !== null && e !== undefined) return;
+
+          popupContent = `
+              ${e.features[0].properties.index}
+              ${e.features[0].properties.speed}
+              ${e.features[0].properties.speedBand}`;
+
           new mapboxgl.Popup()
             .setLngLat(e.lngLat)
-            .setHTML(`${e.features[0].properties.speed} ${e.features[0].properties.speedBand}`)
+            .setHTML(popupContent)
             .addTo(this.map);
         });
         // Geographic coordinates of the LineString
