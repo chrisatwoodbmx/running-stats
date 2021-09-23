@@ -64,22 +64,37 @@ export default Vue.extend({
 
         const geojson = {
           type: 'FeatureCollection',
-          features: [
-            {
+          features: [],
+        };
+
+        this.activity.points.forEach((point, index) => {
+          const hue = point.speedBand * (240 - 1) + 1;
+
+          const hsl = `hsl(${hue}, 100%, 50%)`;
+
+          if (index !== this.activity.points.length - 1) {
+            geojson.features.push({
               type: 'Feature',
+              properties: {
+                speedColour: hsl,
+                speed: point.speed,
+                speedBand: point.speedBand,
+              },
               geometry: {
                 type: 'LineString',
-                properties: {},
-                coordinates: this.activity.coordinates(),
+                coordinates: [point.lngLat(), this.activity.points[index + 1].lngLat()],
               },
-            },
-          ],
-        };
+            });
+          }
+        });
+
+        console.log(geojson);
 
         this.map.on('load', () => {
           this.map.addSource('route', {
             type: 'geojson',
             data: geojson,
+            lineMetrics: true,
           });
 
           this.map.addLayer({
@@ -91,12 +106,26 @@ export default Vue.extend({
               'line-cap': 'round',
             },
             paint: {
-              'line-color': '#888',
+              // 'line-gradient': [
+              //   'interpolate',
+              //   ['linear'],
+              //   ['line-progress'],
+              //   0,
+              //   ['get', 'speedColour'],
+              //   1,
+              //   ['get', 'nextSpeedColour'],
+              // ],
+              'line-color': ['get', 'speedColour'],
               'line-width': 4,
             },
           });
         });
-
+        this.map.on('click', 'route', (e) => {
+          new mapboxgl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(`${e.features[0].properties.speed} ${e.features[0].properties.speedBand}`)
+            .addTo(this.map);
+        });
         // Geographic coordinates of the LineString
         const { coordinates } = geojson.features[0].geometry;
 

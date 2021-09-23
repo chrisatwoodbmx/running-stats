@@ -50,7 +50,11 @@ export default Vue.extend({
     printPoints() {
       const points: Point[] = [];
       this.activityData.gpx.trk.trkseg.trkpt.forEach((data: any) => {
-        const point = new Point(data.attributes.lat, data.attributes.lon, data.time);
+        const point = new Point(
+          parseFloat(data.attributes.lat),
+          parseFloat(data.attributes.lon),
+          data.time,
+        );
         point.setExtras({
           cadence: data.extensions['ns3:TrackPointExtension']['ns3:cad'],
           heartRate: data.extensions['ns3:TrackPointExtension']['ns3:hr'],
@@ -59,13 +63,16 @@ export default Vue.extend({
       });
 
       const activity = new Activity(this.activityData.gpx.trk.name);
-      activity.setPoints(points);
       activity.setStartTime(this.activityData.gpx.metadata.time);
       activity.setEndTime(
         this.activityData.gpx.trk.trkseg.trkpt[this.activityData.gpx.trk.trkseg.trkpt.length - 1]
           .time,
       );
+      activity.setDuration();
+      console.log(this.activityData.gpx.metadata.time);
+      activity.setPoints(points);
 
+      activity.processPoints();
       this.$store.commit('addActivity', activity);
       this.proccessed = true;
       console.log(activity.toObj());
