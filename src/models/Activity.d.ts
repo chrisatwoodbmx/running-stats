@@ -27,7 +27,7 @@ export interface GraphItem {
 export interface HighchartChart {
   chart: { zoomType: string };
   xAxis: { categories: string[] };
-  series: { data: number[] }[];
+  series: { name?: string; type: string; data: number[] }[];
   plotOptions: {
     area: {
       fillColor: {
