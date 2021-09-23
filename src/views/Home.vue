@@ -36,9 +36,8 @@ export default Vue.extend({
       },
       speedChart: {} as {
         zoomType: string;
-        xAxis: { categories: number[]; text: 'Time' };
-        yAxis: { text: 'Km/h' };
-        series: { data: number[]; title: 'Speed' }[];
+        xAxis: { categories: string[] };
+        series: { data: number[] }[];
       },
     };
   },
@@ -98,7 +97,6 @@ export default Vue.extend({
         zoomType: 'xy',
         xAxis: {
           categories: activity.graphs.speed.map((point) => point.time),
-          text: 'Time',
         },
         series: [{ data: activity.graphs.speed.map((point) => toKMPerHour(point.y)) }],
       };
