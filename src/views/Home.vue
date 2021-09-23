@@ -94,10 +94,21 @@ export default Vue.extend({
         chart: { zoomType: 'x' },
         xAxis: {
           categories: activity.graphs.speed.map((point) => point.time),
+          title: {
+            text: undefined,
+          },
+        },
+        yAxis: {
+          title: {
+            text: 'km/hour',
+          },
         },
         series: [
           { type: 'area', data: activity.graphs.speed.map((point) => toKMPerHour(point.y)) },
         ],
+        legend: {
+          enabled: false,
+        },
         plotOptions: {
           area: {
             fillColor: {
@@ -120,6 +131,9 @@ export default Vue.extend({
               hover: {
                 lineWidth: 1,
               },
+            },
+            series: {
+              lineColor: 'rgba(52, 182, 240, 1)',
             },
             threshold: null,
           },

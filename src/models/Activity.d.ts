@@ -26,7 +26,8 @@ export interface GraphItem {
 
 export interface HighchartChart {
   chart: { zoomType: string };
-  xAxis: { categories: string[] };
+  xAxis: { title: { text?: string }; categories: string[] };
+  yAxis: { title: { text?: string } };
   series: { name?: string; type: string; data: number[] }[];
   plotOptions: {
     area: {
@@ -47,6 +48,9 @@ export interface HighchartChart {
         hover: {
           lineWidth: number;
         };
+      };
+      series: {
+        lineColor: string;
       };
       threshold: null;
     };
