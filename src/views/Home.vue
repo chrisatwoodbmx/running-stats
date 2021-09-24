@@ -39,7 +39,7 @@ export default Vue.extend({
     };
   },
   components: { Map, LineChart },
-  computed: mapState(['activityData', 'activity', 'progress']),
+  computed: { ...mapState(['activityData', 'activity', 'progress']) },
 
   watch: {
     file(newVal: File | null) {
@@ -75,8 +75,9 @@ export default Vue.extend({
       this.$store.commit('addActivityData', routeJSON);
       this.printPoints();
     },
-    printPoints() {
+    async printPoints() {
       const points: Point[] = [];
+
       this.activityData.gpx.trk.trkseg.trkpt.forEach((data: any) => {
         const point = new Point(
           parseFloat(data.attributes.lat),
@@ -100,7 +101,9 @@ export default Vue.extend({
       console.log(this.activityData.gpx.metadata.time);
       activity.setPoints(points);
 
-      activity.processPoints();
+      await activity.processPoints();
+      console.log();
+
       this.$store.commit('addActivity', activity);
 
       this.speedChart = {
@@ -121,7 +124,10 @@ export default Vue.extend({
           valueSuffix: 'KM/h',
         },
         series: [
-          { type: 'area', data: activity.graphs.speed.map((point) => toKMPerHour(point.y)) },
+          {
+            type: 'area',
+            data: activity.graphs.speed.map((point) => point.y),
+          },
         ],
         legend: {
           enabled: false,

@@ -1,4 +1,5 @@
 import { DateTime, Duration } from 'luxon';
+import { wrap } from 'comlink';
 import { DistanceByHaversine } from '@/helpers/Coordinates';
 import { Lat, Long } from './Point.d';
 import { toKM } from '@/helpers/Units';
@@ -18,9 +19,9 @@ export default class Point {
 
   public duration?: Duration;
 
-  public durationFromStart: Duration;
+  public elapsedDuration: Duration;
 
-  public distanceFromStart: number;
+  public elapsedDistance: number;
 
   /* Pace in seconds */
   public pace: number;
@@ -41,10 +42,10 @@ export default class Point {
     this.lat = lat;
     this.timestamp = DateTime.fromISO(timestamp);
     this.pace = 0;
-    this.speed = 0;
+    this.speed = 1;
     this.speedBand = 1;
-    this.distanceFromStart = 0;
-    this.durationFromStart = Duration.fromMillis(0);
+    this.elapsedDistance = 0;
+    this.elapsedDuration = Duration.fromMillis(0);
     this.distance = 0;
     this.fastest = false;
     this.slowest = false;
@@ -63,76 +64,32 @@ export default class Point {
     return [this.long, this.lat];
   }
 
-  /**
-   * Calculate diffs to the next segment
-   * @param nextPoint
-   */
-  public compareNext(
-    worker: Worker,
-    nextPoint: Point,
-    elapsed: { time: Duration; distance: number },
-  ): void {
-    this.setDistance(worker, nextPoint);
-    this.setDistanceFromStart(elapsed.distance);
-
-    this.setDuration(nextPoint);
-    this.setDurationFromStart(elapsed.time);
-
-    this.setPace();
-    this.setSpeed();
-  }
-
-  public setPace(): void {
-    if (this.duration === undefined) return;
-    const km = toKM(this.distance);
-    const timeSec = this.duration.as('seconds');
-    const pace = timeSec / km;
+  public setPace(pace: number): void {
     this.pace = pace;
   }
 
-  public setSpeed(): void {
-    if (this.duration === undefined) return;
-
-    const timeSec = this.duration.as('seconds');
-    const speedInMeters = this.distance / timeSec;
-    this.speed = speedInMeters;
+  public setSpeed(speed: number): void {
+    this.speed = speed;
   }
 
-  private setDistance(worker: Worker, nextPoint: Point) {
-    console.log(worker);
-    if (worker !== null) {
-      worker.postMessage({
-        lat1: this.lat,
-        lat2: nextPoint.lat,
-        long1: this.long,
-        long2: nextPoint.long,
-        nextPoint,
-      });
-
-      // eslint-disable-next-line no-param-reassign
-      worker.onmessage = (evt) => {
-        console.log(evt.data);
-        this.distance = evt.data;
-      };
-    }
+  public setDistance(distance: number): void {
+    this.distance = distance;
   }
 
-  private setDuration(nextPoint: Point) {
-    this.duration = nextPoint.timestamp.diff(this.timestamp);
+  public setDuration(nextPointTimestamp: DateTime): void {
+    this.duration = nextPointTimestamp.diff(this.timestamp);
   }
 
-  private setDurationFromStart(elapsedDuration?: Duration) {
+  public setElapsedDuration(elapsedDuration: Duration): void {
     if (this.duration === undefined) {
-      this.durationFromStart = Duration.fromObject({ seconds: 0 });
-    } else if (elapsedDuration === undefined) {
-      this.durationFromStart = this.duration;
+      this.elapsedDuration = Duration.fromObject({ seconds: 0 });
     } else {
-      this.durationFromStart = elapsedDuration.plus(this.duration.toObject());
+      this.elapsedDuration = elapsedDuration.plus(this.duration.toObject());
     }
   }
 
-  private setDistanceFromStart(elapsedDistance: number) {
-    this.distanceFromStart = elapsedDistance + this.distance;
+  public setElapsedDistance(elapsedDistance: number): void {
+    this.elapsedDistance += elapsedDistance;
   }
 
   public isSlowest(): void {

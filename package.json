@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mapbox/mapbox-gl-geocoder": "^4.7.4",
+    "comlink": "^4.3.1",
     "core-js": "^3.6.5",
     "fast-xml-parser": "^3.20.0",
     "he": "^1.2.0",
@@ -45,6 +46,7 @@
     "@vue/eslint-config-airbnb": "^5.0.2",
     "@vue/eslint-config-typescript": "^7.0.0",
     "@vue/test-utils": "^1.0.3",
+    "comlink-loader": "^2.0.0",
     "eslint": "^6.7.2",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-vue": "^6.2.2",
