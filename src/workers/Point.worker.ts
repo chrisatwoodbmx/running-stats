@@ -39,7 +39,7 @@ export function getPaceAndSpeed(
 ): { pace: number; speed: number } {
   const km = toKM(distance);
   const pace = seconds / km;
-  const speed = ((distance / seconds) * 3600.0) / 1000.0;
+  const speed = (distance / seconds) * 3.6;
   return { pace, speed };
 }
 

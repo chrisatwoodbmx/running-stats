@@ -1,11 +1,30 @@
 <template>
   <div>
     <VFileInput v-model="file" truncate-length="15" show-size :loading="processing" />
-    <VContainer v-if="proccessed">
+    <VContainer v-if="proccessed" fluid>
       <VRow>
         <VCol md="8">
+          <h1 clas="text-h1" v-text="activity.name" />
+          <VRow>
+            <VCol>
+              <ActivityStat :value="displayAsKM(activity.elapsedDistance)" title="Distance" />
+            </VCol>
+            <VCol>
+              <ActivityStat :value="displayTime(activity.elapsedDuration)" title="Duration" />
+            </VCol>
+            <VCol>
+              <ActivityStat :value="displayPace(activity.pace.avg)" title="Pace" />
+            </VCol>
+            <VCol>
+              <ActivityStat :value="`${activity.elevation.total}m`" title="Total elevation" />
+            </VCol>
+          </VRow>
+
           <Map :activity="activity" />
-          <LineChart :options="speedChart" style="height: 300px" />
+          <h2>Speed</h2>
+          <PaceChart />
+          <SpeedChart />
+          <ElevationChart />
         </VCol>
         <VCol md="12"> </VCol>
       </VRow>
@@ -17,13 +36,18 @@
 import Vue from 'vue';
 import { mapState } from 'vuex';
 import * as Highcharts from 'highcharts';
+import { Duration } from 'luxon';
 import { readFile } from '../helpers/File';
 import Point from '@/models/Point';
 import Activity from '@/models/Activity';
-import { HighchartChart } from '@/models/Activity.d';
 import Map from '@/components/Map.vue';
-import LineChart from '@/components/graphs/Line.vue';
-import { toKM, toKMPerHour } from '@/helpers/Units';
+import PaceChart from '@/components/graphs/Pace.vue';
+import SpeedChart from '@/components/graphs/Speed.vue';
+import {
+  formatTime, toKM, toKMPerHour, metersToKmPerMinute,
+} from '@/helpers/Units';
+import ActivityStat from '@/components/ActivityStat.vue';
+import ElevationChart from '@/components/graphs/Elevation.vue';
 
 export default Vue.extend({
   name: 'Home',
@@ -38,9 +62,14 @@ export default Vue.extend({
       speedChart: {} as Highcharts.Options,
     };
   },
-  components: { Map, LineChart },
-  computed: { ...mapState(['activityData', 'activity', 'progress']) },
-
+  components: {
+    Map,
+    SpeedChart,
+    PaceChart,
+    ActivityStat,
+    ElevationChart,
+  },
+  computed: mapState(['activityData', 'activity', 'progress']),
   watch: {
     file(newVal: File | null) {
       console.log(newVal);
@@ -78,8 +107,9 @@ export default Vue.extend({
     async printPoints() {
       const points: Point[] = [];
 
-      this.activityData.gpx.trk.trkseg.trkpt.forEach((data: any) => {
+      (this.activityData.gpx.trk.trkseg.trkpt as any[]).forEach((data, index) => {
         const point = new Point(
+          index,
           parseFloat(data.attributes.lat),
           parseFloat(data.attributes.lon),
           data.time,
@@ -88,6 +118,8 @@ export default Vue.extend({
           cadence: data.extensions['ns3:TrackPointExtension']['ns3:cad'],
           heartRate: data.extensions['ns3:TrackPointExtension']['ns3:hr'],
         });
+
+        point.setElevation(data.ele);
         points.push(point);
       });
 
@@ -106,64 +138,21 @@ export default Vue.extend({
 
       this.$store.commit('addActivity', activity);
 
-      this.speedChart = {
-        chart: { zoomType: 'x' },
-        xAxis: {
-          categories: activity.graphs.speed.map((point) => point.time),
-          title: {
-            text: undefined,
-          },
-        },
-        yAxis: {
-          title: {
-            text: 'km/hour',
-          },
-        },
-        tooltip: {
-          valueDecimals: 2,
-          valueSuffix: 'KM/h',
-        },
-        series: [
-          {
-            type: 'area',
-            data: activity.graphs.speed.map((point) => point.y),
-          },
-        ],
-        legend: {
-          enabled: false,
-        },
-        plotOptions: {
-          area: {
-            fillColor: {
-              linearGradient: {
-                x1: 0,
-                y1: 0,
-                x2: 0,
-                y2: 1,
-              },
-              stops: [
-                [0, 'rgba(52, 182, 240, 1)'],
-                [1, 'rgba(52, 182, 240, 0)'],
-              ],
-            },
-            marker: {
-              radius: 2,
-            },
-            lineWidth: 1,
-            states: {
-              hover: {
-                lineWidth: 1,
-              },
-            },
-            threshold: null,
-          },
-          series: {
-            borderColor: 'rgba(52, 182, 240, 1)',
-          },
-        },
-      };
-
       this.proccessed = true;
+    },
+
+    displayAsKM(distance: number) {
+      return `${toKM(distance).toFixed(2)}km`;
+    },
+    displayTime(duration: Duration) {
+      return formatTime(duration);
+    },
+    displayPace(pace: number) {
+      return formatTime(
+        Duration.fromObject({
+          seconds: pace,
+        }),
+      );
     },
   },
 });

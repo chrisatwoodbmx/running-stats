@@ -29,8 +29,10 @@ export default class Activity {
 
   public cadence!: AverageObj;
 
-  public elevation!: {
+  public elevation: {
     total: number;
+    min: number;
+    max: number;
     accent: number;
     decent: number;
   };
@@ -62,6 +64,13 @@ export default class Activity {
         4: 0,
         5: 0,
       },
+    };
+    this.elevation = {
+      min: 999,
+      max: 0,
+      decent: 0,
+      total: 0,
+      accent: 0,
     };
 
     this.graphs = {
@@ -105,25 +114,20 @@ export default class Activity {
           point.setDuration(nextPoint.timestamp);
           point.setElapsedDuration(this.elapsedDuration);
           this.elapsedDuration = point.elapsedDuration;
-          point.setElapsedDistance(this.elapsedDistance);
 
           const distance = await getDistance(point.lat, nextPoint.lat, point.long, nextPoint.long);
+
+          point.setDistance(distance);
+          point.setElapsedDistance(this.elapsedDistance);
+          this.elapsedDistance += point.distance;
+
           const { pace, speed } = await getPaceAndSpeed(
             distance,
             point.duration?.as('seconds') || 0,
           );
-
-          point.setDistance(distance);
           point.setPace(pace);
           point.setSpeed(speed);
-          // console.log(speed);
-
-          // point.setDistance( distance);
-          // point.compareNext(this.points[i + 1], {
-          //   time: this.elapsedDuration,
-          //   distance: this.elapsedDistance,
-          // });
-          this.elapsedDistance += point.distance;
+          point.setElevationChange(nextPoint.elevation.value - point.elevation.value);
 
           if (i === array.length - 2) {
             resolve();
@@ -160,6 +164,7 @@ export default class Activity {
 
       this.processSpeed(point, time);
       this.processPace(point, time);
+      this.processElevation(point, time);
     });
 
     const totalSpeed = this.graphs.speed.reduce((acc, val) => acc + val.y, 0);
@@ -167,6 +172,8 @@ export default class Activity {
     console.log(this.speed.avg);
     const totalPace = this.graphs.pace.reduce((acc, val) => acc + val.y, 0);
     this.pace.avg = totalPace / this.graphs.pace.length;
+
+    this.elevation.total = this.elevation.max - this.elevation.min;
 
     this.setSpeedBand();
   }
@@ -192,6 +199,31 @@ export default class Activity {
     }
   }
 
+  private processElevation(point: Point, time: string) {
+    const { elevation } = point;
+    if (Number.isNaN(elevation)) return;
+
+    this.graphs.elevation.push({
+      time,
+      y: elevation.value,
+      x: point.elapsedDuration.as('seconds'),
+    });
+
+    if (elevation.change < 0) {
+      this.elevation.decent += elevation.change;
+    }
+    if (elevation.change > 0) {
+      this.elevation.accent += elevation.change;
+    }
+
+    if (elevation.value > this.elevation.max) {
+      this.elevation.max = elevation.value;
+    }
+    if (elevation.value > 0 && elevation.value < this.elevation.min) {
+      this.elevation.min = elevation.value;
+    }
+  }
+
   private setSpeedBand() {
     const bucket = (this.speed.min.value - this.speed.max.value) / 100;
     console.log(bucket);
@@ -202,21 +234,22 @@ export default class Activity {
   }
 
   private processPace(point: Point, time: string) {
-    if (Number.isNaN(point.pace)) return;
+    const { pace, elapsedDuration } = point;
+    if (Number.isNaN(pace)) return;
 
     this.graphs.pace.push({
       time,
-      y: point.pace,
-      x: point.elapsedDuration.as('seconds'),
+      y: pace,
+      x: elapsedDuration.as('seconds'),
     });
 
-    if (point.pace !== 0 && point.pace > this.pace.max.value) {
+    if (pace > 0 && pace > this.pace.max.value) {
       this.pace.max.point = point;
-      this.pace.max.value = point.pace;
+      this.pace.max.value = pace;
     }
-    if (point.pace < this.pace.min.value) {
+    if (pace > 0 && pace < this.pace.min.value) {
       this.pace.min.point = point;
-      this.pace.min.value = point.pace;
+      this.pace.min.value = pace;
     }
 
     // const diff = currentTime.plus({ seconds: this.pace.avg }).diff(currentTime);

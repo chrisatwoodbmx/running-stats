@@ -5,6 +5,8 @@ import { Lat, Long } from './Point.d';
 import { toKM } from '@/helpers/Units';
 
 export default class Point {
+  public index: number;
+
   public long: Lat;
 
   public lat: Long;
@@ -35,9 +37,10 @@ export default class Point {
 
   public slowest: boolean;
 
-  public elevation!: { value: number; change: number };
+  public elevation: { value: number; change: number };
 
-  constructor(lat: Lat, long: Long, timestamp: string) {
+  constructor(index: number, lat: Lat, long: Long, timestamp: string) {
+    this.index = index;
     this.long = long;
     this.lat = lat;
     this.timestamp = DateTime.fromISO(timestamp);
@@ -49,6 +52,7 @@ export default class Point {
     this.distance = 0;
     this.fastest = false;
     this.slowest = false;
+    this.elevation = { value: 0, change: 0 };
   }
 
   public setExtras(extras: { cadence?: number; heartRate?: number }): void {
@@ -78,6 +82,14 @@ export default class Point {
 
   public setDuration(nextPointTimestamp: DateTime): void {
     this.duration = nextPointTimestamp.diff(this.timestamp);
+  }
+
+  public setElevation(value: number): void {
+    this.elevation.value = value;
+  }
+
+  public setElevationChange(value: number): void {
+    this.elevation.change = value;
   }
 
   public setElapsedDuration(elapsedDuration: Duration): void {
