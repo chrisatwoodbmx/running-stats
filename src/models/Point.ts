@@ -1,8 +1,5 @@
 import { DateTime, Duration } from 'luxon';
-import { wrap } from 'comlink';
-import { DistanceByHaversine } from '@/helpers/Coordinates';
 import { Lat, Long } from './Point.d';
-import { toKM } from '@/helpers/Units';
 
 export default class Point {
   public index: number;
