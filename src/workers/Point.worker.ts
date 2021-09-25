@@ -1,18 +1,14 @@
 import { toKM } from '@/helpers/Units';
+import { Lat, Long } from '@/models/Point.d';
 
 export const R = 6378100;
 
-export function getDistance(
-  latCurrent: number,
-  latNext: number,
-  longCurrent: number,
-  longNext: number,
-): number {
+export function getDistance(latlong: [Lat, Long], nextLatlong: [Lat, Long]): number {
   /* Convert to radians */
-  const lat1 = (latCurrent * Math.PI) / 180;
-  const long1 = (longCurrent * Math.PI) / 180;
-  const lat2 = (latNext * Math.PI) / 180;
-  const long2 = (longNext * Math.PI) / 180;
+  const lat1 = (latlong[0] * Math.PI) / 180;
+  const long1 = (latlong[1] * Math.PI) / 180;
+  const lat2 = (nextLatlong[0] * Math.PI) / 180;
+  const long2 = (nextLatlong[1] * Math.PI) / 180;
 
   /* P */
 

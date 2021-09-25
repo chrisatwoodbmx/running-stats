@@ -115,7 +115,10 @@ export default class Activity {
           point.setElapsedDuration(this.elapsedDuration);
           this.elapsedDuration = point.elapsedDuration;
 
-          const distance = await getDistance(point.lat, nextPoint.lat, point.long, nextPoint.long);
+          const distance = await getDistance(
+            [point.lat, point.long],
+            [nextPoint.lat, nextPoint.long],
+          );
 
           point.setDistance(distance);
           point.setElapsedDistance(this.elapsedDistance);
