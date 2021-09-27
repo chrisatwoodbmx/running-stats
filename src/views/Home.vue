@@ -43,9 +43,7 @@ import Activity from '@/models/Activity';
 import Map from '@/components/Map.vue';
 import PaceChart from '@/components/graphs/Pace.vue';
 import SpeedChart from '@/components/graphs/Speed.vue';
-import {
-  formatTime, toKM, toKMPerHour, metersToKmPerMinute,
-} from '@/helpers/Units';
+import { formatTime, toKM, metersToKmPerMinute } from '@/helpers/Units';
 import ActivityStat from '@/components/ActivityStat.vue';
 import ElevationChart from '@/components/graphs/Elevation.vue';
 
