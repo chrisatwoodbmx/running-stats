@@ -113,7 +113,6 @@ export default class Stats {
     });
 
     if (speed !== 0 && speed > this.speed.max.value) {
-      console.log(speed);
       this.speed.max.point = point;
       this.speed.max.value = speed;
     }
@@ -170,7 +169,6 @@ export default class Stats {
 
   private setSpeedBand(points: Point[]) {
     const bucket = (this.speed.min.value - this.speed.max.value) / 100;
-    console.log(bucket);
 
     points.forEach((point) => {
       point.setSpeedBand(bucket);
@@ -195,14 +193,5 @@ export default class Stats {
       this.pace.min.point = point;
       this.pace.min.value = pace;
     }
-
-    // const diff = currentTime.plus({ seconds: this.pace.avg }).diff(currentTime);
-
-    // const diffMin = currentTime.plus({ seconds: this.pace.min }).diff(currentTime);
-    // const diffMax = currentTime.plus({ seconds: this.pace.max }).diff(currentTime);
-
-    // console.log(diff.toFormat("'Avg: 'mm':'ss'/km'"));
-    // console.log(diffMin.toFormat("'Min: 'mm':'ss'/km'"));
-    // console.log(diffMax.toFormat("'Max: 'mm':'ss'/km'"));
   }
 }

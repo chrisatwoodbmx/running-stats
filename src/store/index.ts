@@ -18,7 +18,6 @@ export default new Vuex.Store({
       state.activity = activity;
     },
     addProgress(state, progress: number) {
-      console.log(progress);
       state.progress = progress;
     },
   },

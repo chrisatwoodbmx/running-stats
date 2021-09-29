@@ -87,7 +87,6 @@ export default Vue.extend({
     const file = window.localStorage.getItem('file');
     if (file !== null) {
       this.processing = true;
-      this.progress = 100;
       this.$store.commit('addProgress', 100);
       this.$store.commit('addActivityData', JSON.parse(file));
       this.printPoints();
