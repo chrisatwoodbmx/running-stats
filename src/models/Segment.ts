@@ -1,7 +1,6 @@
 import { Duration } from 'luxon';
 import Point from './Point';
 
-import { getPaceAndSpeed } from '@/workers/Point.worker';
 import Stats from './Stats';
 
 export default class Segment extends Stats {

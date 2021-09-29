@@ -12,14 +12,7 @@ import { Duration } from 'luxon';
 import { readFile } from '../helpers/File';
 import Point from '@/models/Point';
 import Activity from '@/models/Activity';
-import Map from '@/components/Map.vue';
-import PaceChart from '@/components/graphs/Pace.vue';
-import SpeedChart from '@/components/graphs/Speed.vue';
 import { formatTime, toKM } from '@/helpers/Units';
-import ActivityStat from '@/components/ActivityStat.vue';
-import ElevationChart from '@/components/graphs/Elevation.vue';
-import HRChart from '@/components/graphs/HR.vue';
-import Laps from '@/components/Laps.vue';
 
 export default Vue.extend({
   name: 'Home',

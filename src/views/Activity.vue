@@ -48,7 +48,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'vuex';
-import * as Highcharts from 'highcharts';
 import { Duration } from 'luxon';
 import Map from '@/components/Map.vue';
 import PaceChart from '@/components/graphs/Pace.vue';

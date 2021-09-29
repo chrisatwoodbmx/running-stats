@@ -5,10 +5,10 @@
 <script lang="ts">
 import { Duration } from 'luxon';
 import Vue from 'vue';
-import { mapGetters, mapState } from 'vuex';
+import { mapState } from 'vuex';
 import { formatTime, toKM } from '@/helpers/Units';
 import Activity from '@/models/Activity';
-import { BasicSegment, FullSegment } from '@/models/Segment.d';
+import { FullSegment } from '@/models/Segment.d';
 
 export default Vue.extend({
   data() {
