@@ -25,8 +25,11 @@
           <PaceChart />
           <SpeedChart />
           <ElevationChart />
+          <HRChart />
         </VCol>
-        <VCol md="12"> </VCol>
+        <VCol md="4">
+          <Laps />
+        </VCol>
       </VRow>
     </VContainer>
   </div>
@@ -43,9 +46,11 @@ import Activity from '@/models/Activity';
 import Map from '@/components/Map.vue';
 import PaceChart from '@/components/graphs/Pace.vue';
 import SpeedChart from '@/components/graphs/Speed.vue';
-import { formatTime, toKM, metersToKmPerMinute } from '@/helpers/Units';
+import { formatTime, toKM } from '@/helpers/Units';
 import ActivityStat from '@/components/ActivityStat.vue';
 import ElevationChart from '@/components/graphs/Elevation.vue';
+import HRChart from '@/components/graphs/HR.vue';
+import Laps from '@/components/Laps.vue';
 
 export default Vue.extend({
   name: 'Home',
@@ -66,6 +71,8 @@ export default Vue.extend({
     PaceChart,
     ActivityStat,
     ElevationChart,
+    HRChart,
+    Laps,
   },
   computed: mapState(['activityData', 'activity', 'progress']),
   watch: {
@@ -132,6 +139,7 @@ export default Vue.extend({
       activity.setPoints(points);
 
       await activity.processPoints();
+      activity.processSegments();
       console.log();
 
       this.$store.commit('addActivity', activity);

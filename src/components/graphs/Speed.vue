@@ -1,5 +1,5 @@
 <template>
-  <LineChart id="pace" :options="chart" style="height: 300px" />
+  <LineChart id="speed" :options="chart" style="height: 300px" />
 </template>
 
 <script lang="ts">
@@ -27,7 +27,7 @@ export default Vue.extend({
 
     this.chart = {
       chart: {
-        type: 'area',
+        type: 'line',
         zoomType: 'x',
       },
       xAxis: {

@@ -16,7 +16,7 @@ export default class Point {
 
   public distance: number;
 
-  public duration?: Duration;
+  public duration: Duration;
 
   public elapsedDuration: Duration;
 
@@ -50,6 +50,7 @@ export default class Point {
     this.fastest = false;
     this.slowest = false;
     this.elevation = { value: 0, change: 0 };
+    this.duration = Duration.fromMillis(0);
   }
 
   public setExtras(extras: { cadence?: number; heartRate?: number }): void {
@@ -90,11 +91,7 @@ export default class Point {
   }
 
   public setElapsedDuration(elapsedDuration: Duration): void {
-    if (this.duration === undefined) {
-      this.elapsedDuration = Duration.fromObject({ seconds: 0 });
-    } else {
-      this.elapsedDuration = elapsedDuration.plus(this.duration.toObject());
-    }
+    this.elapsedDuration = elapsedDuration.plus(this.duration.toObject());
   }
 
   public setElapsedDistance(elapsedDistance: number): void {

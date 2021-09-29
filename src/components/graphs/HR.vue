@@ -1,5 +1,5 @@
 <template>
-  <LineChart id="elevation" :options="chart" style="height: 300px" />
+  <LineChart id="HR" :options="chart" style="height: 300px" />
 </template>
 
 <script lang="ts">
@@ -7,8 +7,10 @@ import Vue from 'vue';
 
 import { mapState } from 'vuex';
 import * as Highcharts from 'highcharts';
+import { Duration } from 'luxon';
 
 import LineChart from '@/components/graphs/Line.vue';
+import { formatTime } from '@/helpers/Units';
 
 import Activity from '@/models/Activity';
 
@@ -21,7 +23,7 @@ export default Vue.extend({
     };
   },
   mounted() {
-    const speedSeries = (this.activity as Activity).graphs.elevation.map((point) => point.y);
+    const speedHR = (this.activity as Activity).graphs.HR.map((point) => point.y);
 
     this.chart = {
       chart: {
@@ -29,7 +31,7 @@ export default Vue.extend({
         zoomType: 'x',
       },
       xAxis: {
-        categories: (this.activity as Activity).graphs.elevation.map((point) => point.time),
+        categories: (this.activity as Activity).graphs.HR.map((point) => point.time),
         title: {
           text: undefined,
         },
@@ -38,15 +40,23 @@ export default Vue.extend({
         title: {
           text: 'km/hour',
         },
+        softMin: 100,
       },
       tooltip: {
         valueDecimals: 2,
+        formatter() {
+          return formatTime(
+            Duration.fromObject({
+              seconds: this.y,
+            }),
+          );
+        },
       },
       series: [
         {
           type: 'area',
-          data: speedSeries,
-          name: 'Elevation',
+          data: speedHR,
+          name: 'Hear rate',
         },
       ],
       legend: {
