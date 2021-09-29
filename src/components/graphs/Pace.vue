@@ -25,6 +25,7 @@ export default Vue.extend({
     const paceSeries = (this.activity as Activity).graphs.pace.map((point) => point.y);
 
     this.chart = {
+      title: { text: 'Pace' },
       chart: {
         type: 'area',
         zoomType: 'x',
@@ -63,7 +64,7 @@ export default Vue.extend({
       },
       series: [
         {
-          type: 'area',
+          type: 'line',
           data: paceSeries,
           name: 'Pace',
           dataLabels: {

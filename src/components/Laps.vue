@@ -1,49 +1,5 @@
 <template>
-  <div>
-    <VSimpleTable>
-      <template #default>
-        <thead>
-          <tr>
-            <th
-              class="text-left"
-              v-for="header in basicHeaders"
-              :key="`basic-${header.text}`"
-              v-text="header.text"
-            />
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr v-for="(segment, index) in basicData" :key="index">
-            <td v-text="segment.lap" />
-            <td v-text="segment.distance" />
-            <td v-text="segment.time" />
-            <td v-text="segment.pace" />
-            <td v-text="segment.HR" />
-            <td v-text="segment.elevation" />
-          </tr>
-        </tbody>
-      </template>
-    </VSimpleTable>
-
-    <VBtn
-      class="mt-2 ml-auto"
-      text
-      @click="expandedView = !expandedView"
-      v-text="'View full breakdown'"
-    />
-
-    <VDialog v-model="expandedView">
-      <VCard>
-        <VCardTitle>
-          <span class="text-h5">Full lap breakdown</span>
-        </VCardTitle>
-        <VCardText>
-          <VDataTable :headers="fullHeaders" :items="fullData" />
-        </VCardText>
-      </VCard>
-    </VDialog>
-  </div>
+  <VDataTable :headers="fullHeaders" :items="fullData" />
 </template>
 
 <script lang="ts">
@@ -59,15 +15,6 @@ export default Vue.extend({
     return {
       expandedView: false,
       fullData: [] as FullSegment[],
-      basicData: [] as BasicSegment[],
-      basicHeaders: [
-        { text: 'Lap', value: 'lap' },
-        { text: 'Distance', value: 'distance' },
-        { text: 'Time', value: 'time' },
-        { text: 'Pace', value: 'pace' },
-        { text: 'HR' },
-        { text: 'Elevation', value: 'elevation' },
-      ],
       fullHeaders: [
         { text: 'Lap', value: 'lap' },
         { text: 'Distance', value: 'distance' },
@@ -99,20 +46,12 @@ export default Vue.extend({
         avg: this.formatPace(seg.pace.avg),
         min: this.formatPace(seg.pace.min.value),
       };
-      const elevationChange = seg.elevation.total.toFixed(0);
+
       const elevationAscent = seg.elevation.accent.toFixed(0);
       const elevationDecent = seg.elevation.decent.toFixed(0);
       const avgHR = seg.HR.avg.toFixed(0);
       const maxHR = seg.HR.max.value.toFixed(0);
 
-      this.basicData.push({
-        lap,
-        distance,
-        time,
-        pace: pace.avg,
-        elevation: elevationChange,
-        HR: avgHR,
-      });
       this.fullData.push({
         lap,
         distance,

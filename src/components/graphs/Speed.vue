@@ -26,6 +26,7 @@ export default Vue.extend({
     const speedSeries = (this.activity as Activity).graphs.speed.map((point) => point.y);
 
     this.chart = {
+      title: { text: 'Speed' },
       chart: {
         type: 'line',
         zoomType: 'x',
@@ -59,6 +60,7 @@ export default Vue.extend({
           dataLabels: {
             format: '{value::%M}',
           },
+          color: '#43A047',
         },
       ],
       legend: {

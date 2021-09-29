@@ -1,37 +1,6 @@
 <template>
   <div>
     <VFileInput v-model="file" truncate-length="15" show-size :loading="processing" />
-    <VContainer v-if="proccessed" fluid>
-      <VRow>
-        <VCol md="8">
-          <h1 clas="text-h1" v-text="activity.name" />
-          <VRow>
-            <VCol>
-              <ActivityStat :value="displayAsKM(activity.elapsedDistance)" title="Distance" />
-            </VCol>
-            <VCol>
-              <ActivityStat :value="displayTime(activity.elapsedDuration)" title="Duration" />
-            </VCol>
-            <VCol>
-              <ActivityStat :value="displayPace(activity.pace.avg)" title="Pace" />
-            </VCol>
-            <VCol>
-              <ActivityStat :value="`${activity.elevation.total}m`" title="Total elevation" />
-            </VCol>
-          </VRow>
-
-          <Map :activity="activity" />
-          <h2>Speed</h2>
-          <PaceChart />
-          <SpeedChart />
-          <ElevationChart />
-          <HRChart />
-        </VCol>
-        <VCol md="4">
-          <Laps />
-        </VCol>
-      </VRow>
-    </VContainer>
   </div>
 </template>
 
@@ -65,15 +34,7 @@ export default Vue.extend({
       speedChart: {} as Highcharts.Options,
     };
   },
-  components: {
-    Map,
-    SpeedChart,
-    PaceChart,
-    ActivityStat,
-    ElevationChart,
-    HRChart,
-    Laps,
-  },
+  components: {},
   computed: mapState(['activityData', 'activity', 'progress']),
   watch: {
     file(newVal: File | null) {
@@ -144,6 +105,7 @@ export default Vue.extend({
       this.$store.commit('addActivity', activity);
 
       this.proccessed = true;
+      this.$router.push('/activity');
     },
 
     displayAsKM(distance: number) {

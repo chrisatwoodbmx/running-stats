@@ -26,6 +26,7 @@ export default Vue.extend({
     const speedHR = (this.activity as Activity).graphs.HR.map((point) => point.y);
 
     this.chart = {
+      title: { text: 'Heart rate' },
       chart: {
         type: 'area',
         zoomType: 'x',
@@ -56,7 +57,8 @@ export default Vue.extend({
         {
           type: 'area',
           data: speedHR,
-          name: 'Hear rate',
+          name: 'Heart rate',
+          color: '#E53935',
         },
       ],
       legend: {

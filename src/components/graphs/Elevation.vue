@@ -24,6 +24,7 @@ export default Vue.extend({
     const speedSeries = (this.activity as Activity).graphs.elevation.map((point) => point.y);
 
     this.chart = {
+      title: { text: 'Elevation' },
       chart: {
         type: 'area',
         zoomType: 'x',
@@ -47,6 +48,7 @@ export default Vue.extend({
           type: 'area',
           data: speedSeries,
           name: 'Elevation',
+          color: '#039BE5',
         },
       ],
       legend: {
