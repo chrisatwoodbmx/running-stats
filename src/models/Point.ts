@@ -40,10 +40,11 @@ export default class Point {
 
   /** A shadow points are used for graphing.
    * If there shadow point, the original point would not be shown */
-  public shadowPoints: Point[];
+  public shadowPoint?: Point;
 
-  constructor(index: number, lat: Lat, long: Long, timestamp: string) {
-    this.shadowPoints = [];
+  public replacement: boolean;
+
+  constructor(index: number, lat: Lat, long: Long, timestamp: string, replacement?: boolean) {
     this.index = index;
     this.long = long;
     this.lat = lat;
@@ -58,6 +59,7 @@ export default class Point {
     this.slowest = false;
     this.elevation = { value: 0, change: 0 };
     this.duration = Duration.fromMillis(0);
+    this.replacement = replacement || false;
   }
 
   public setExtras(extras: { cadence?: number; heartRate?: number }): void {
@@ -93,6 +95,16 @@ export default class Point {
     this.elevation.value = value;
   }
 
+  public getElapsedDistance(): number {
+    if (this.shadowPoint === undefined) return this.elapsedDistance;
+
+    if (this.shadowPoint.replacement) return this.shadowPoint.elapsedDistance;
+    if (!this.shadowPoint.replacement) {
+      return this.elapsedDistance + this.shadowPoint.elapsedDistance;
+    }
+    return this.elapsedDistance;
+  }
+
   public setElevationChange(value: number): void {
     this.elevation.change = value;
   }
@@ -117,12 +129,12 @@ export default class Point {
     this.speedBand = this.speed / unit / 100;
   }
 
-  public addShadowPoint(point: Point): void {
-    this.shadowPoints.push(point);
+  public setShadowPoint(point: Point): void {
+    this.shadowPoint = point;
   }
 
   public resetShadowPoint(): void {
-    this.shadowPoints = [];
+    this.shadowPoint = undefined;
   }
 
   toString(timestamp = false): string {

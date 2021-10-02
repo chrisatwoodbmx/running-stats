@@ -83,7 +83,6 @@ export default class Activity extends Stats {
       }).then(() => {
         this.processAverages(this.points);
 
-        console.log('Done procesing');
         outerResolve();
       });
     });
@@ -108,22 +107,30 @@ export default class Activity extends Stats {
   }
 
   public processSegments(): void {
-    console.log('starting segs');
     let splits = 1;
 
     const splittingPoints = this.points.filter((point, index) => {
-      const division = point.elapsedDistance / (this.split * splits);
+      const currentSplitDistance = this.split * splits;
+      const division = point.elapsedDistance / currentSplitDistance;
       const remainder = Math.floor(division);
 
       if (remainder === 1) {
         const { speedBand } = point;
-        console.log(speedBand);
         splits += 1;
 
-        /* Check if it's exactly (approx) dividable into the this.split */
+        /* Check if it's exactly dividable into the this.split */
         if (division - remainder > 0 && index !== this.points.length - 1) {
           const distance = toMeters(division - remainder);
-          const percentage = (distance / point.distance) * 100;
+          const distanceBeforeSplit = currentSplitDistance - this.points[index - 1].elapsedDistance;
+
+          console.log(
+            this.points[index - 1].elapsedDistance,
+            point.elapsedDistance,
+            distanceBeforeSplit,
+            point.distance,
+            distance,
+          );
+          const percentage = (distanceBeforeSplit / point.distance) * 100;
           const duration = point.duration.toMillis() / percentage;
 
           const start = point.lngLat();
@@ -140,17 +147,19 @@ export default class Activity extends Stats {
             point.long,
             point.timestamp.toISO(),
           );
-          splitPoint1.setDistance(distance);
+          splitPoint1.setDistance(distanceBeforeSplit);
           splitPoint1.setDuration(middleTimestamp);
           splitPoint1.setElapsedDuration(point.elapsedDuration.minus(duration));
 
-          splitPoint1.setElapsedDistance(point.elapsedDistance - distance);
+          splitPoint1.setElapsedDistance(
+            this.points[index - 1].elapsedDistance + distanceBeforeSplit,
+          );
 
           splitPoint1.setPace(point.pace);
           splitPoint1.setSpeed(point.speed);
           splitPoint1.setElevationChange(point.elevation.change);
           splitPoint1.speedBand = speedBand;
-          point.addShadowPoint(splitPoint1);
+          this.points[index - 1].setShadowPoint(splitPoint1);
 
           /* Create new shadow point for the actual remainder */
           const splitPoint2 = new Point(
@@ -158,8 +167,9 @@ export default class Activity extends Stats {
             newCoords[0],
             newCoords[1],
             middleTimestamp.toISO(),
+            true,
           );
-          splitPoint2.setDistance(point.distance - distance);
+          splitPoint2.setDistance(distance);
           splitPoint2.setDuration(this.points[index + 1].timestamp);
           splitPoint1.setElapsedDuration(
             point.elapsedDuration.plus(point.duration.toMillis() - duration),
@@ -171,9 +181,7 @@ export default class Activity extends Stats {
           splitPoint2.setSpeed(point.speed);
           splitPoint2.setElevationChange(point.elevation.change);
           splitPoint2.speedBand = speedBand;
-          point.addShadowPoint(splitPoint2);
-
-          console.log(point);
+          point.setShadowPoint(splitPoint2);
         }
         return true;
       }
@@ -203,5 +211,7 @@ export default class Activity extends Stats {
       seg.addPoints(points);
       this.segments.push(seg);
     }
+
+    console.log(this.segments);
   }
 }

@@ -16,8 +16,16 @@ export default class Segment extends Stats {
     this.points.push(...points);
 
     points.forEach((point) => {
-      this.elapsedDuration = this.elapsedDuration.plus(point.duration);
-      this.elapsedDistance += point.distance;
+      if (point.shadowPoint === undefined) {
+        this.elapsedDuration = this.elapsedDuration.plus(point.duration);
+        this.elapsedDistance += point.distance;
+      } else if (point.shadowPoint.replacement) {
+        this.elapsedDuration = this.elapsedDuration.plus(point.shadowPoint.duration);
+        this.elapsedDistance += point.shadowPoint.distance;
+      } else {
+        this.elapsedDuration = this.elapsedDuration.plus(point.shadowPoint.duration);
+        this.elapsedDistance += point.shadowPoint.distance;
+      }
     });
 
     this.processAverages(points, false);
