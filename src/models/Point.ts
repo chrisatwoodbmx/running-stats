@@ -1,5 +1,7 @@
 import { DateTime, Duration } from 'luxon';
-import { Lat, Long } from './Point.d';
+import {
+  Lat, LatLong, Long, LongLat,
+} from './Point.d';
 
 export default class Point {
   public index: number;
@@ -36,7 +38,12 @@ export default class Point {
 
   public elevation: { value: number; change: number };
 
+  /** A shadow points are used for graphing.
+   * If there shadow point, the original point would not be shown */
+  public shadowPoints: Point[];
+
   constructor(index: number, lat: Lat, long: Long, timestamp: string) {
+    this.shadowPoints = [];
     this.index = index;
     this.long = long;
     this.lat = lat;
@@ -58,11 +65,11 @@ export default class Point {
     if (extras.heartRate) this.HR = extras.heartRate;
   }
 
-  public latLng(): [Lat, Long] {
+  public latLng(): LatLong {
     return [this.lat, this.long];
   }
 
-  public lngLat(): [Long, Lat] {
+  public lngLat(): LongLat {
     return [this.long, this.lat];
   }
 
@@ -108,6 +115,14 @@ export default class Point {
 
   public setSpeedBand(unit: number): void {
     this.speedBand = this.speed / unit / 100;
+  }
+
+  public addShadowPoint(point: Point): void {
+    this.shadowPoints.push(point);
+  }
+
+  public resetShadowPoint(): void {
+    this.shadowPoints = [];
   }
 
   toString(timestamp = false): string {

@@ -49,7 +49,6 @@ export default class Activity extends Stats {
   }
 
   public async processPoints(): Promise<void> {
-    console.log;
     return new Promise((outerResolve) => {
       new Promise<void>((resolve): void => {
         this.points.forEach(async (point, i, array) => {

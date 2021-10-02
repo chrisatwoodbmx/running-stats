@@ -20,7 +20,7 @@ export default class Segment extends Stats {
       this.elapsedDistance += point.distance;
     });
 
-    this.processAverages(points);
+    this.processAverages(points, false);
   }
 
   public getDistance(): number {
