@@ -31,7 +31,6 @@ export default Vue.extend({
   computed: mapState(['activityData', 'activity', 'progress']),
   watch: {
     file(newVal: File | null) {
-      console.log(newVal);
       if (newVal === null) return;
 
       this.readFile(newVal);
@@ -88,12 +87,11 @@ export default Vue.extend({
           .time,
       );
       activity.setDuration();
-      console.log(this.activityData.gpx.metadata.time);
+
       activity.setPoints(points);
 
       await activity.processPoints();
       activity.processSegments();
-      console.log();
 
       this.$store.commit('addActivity', activity);
 

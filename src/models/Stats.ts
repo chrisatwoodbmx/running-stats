@@ -100,8 +100,6 @@ export default class Stats {
     this.elevation.total = this.elevation.max - this.elevation.min;
 
     if (withSpeedBand) this.setSpeedBand(points);
-
-    console.log('Done with speedband outer');
   }
 
   private processSpeed(point: Point, time: string) {
@@ -175,8 +173,6 @@ export default class Stats {
     points.forEach((point) => {
       point.setSpeedBand(bucket);
     });
-
-    console.log('Done with speedband inner');
   }
 
   private processPace(point: Point, time: string) {

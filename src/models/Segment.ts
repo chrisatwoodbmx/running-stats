@@ -22,7 +22,7 @@ export default class Segment extends Stats {
   public addPoints(points: Point[]): void {
     this.points.push(...points);
 
-    points.forEach((point, index) => {
+    points.forEach((point) => {
       if (point.shadowPoint === undefined) {
         this.duration = this.duration.plus(point.duration);
         this.distance += point.distance;
@@ -31,7 +31,7 @@ export default class Segment extends Stats {
         this.distance += point.shadowPoint.distance;
       } else {
         this.duration = this.duration.plus(point.duration).plus(point.shadowPoint.duration);
-        console.log(index, this.distance, point.distance, point.shadowPoint.distance);
+
         this.distance += point.distance + point.shadowPoint.distance;
       }
     });

@@ -222,7 +222,5 @@ export default class Activity extends Stats {
         ),
       );
     }
-
-    console.log(this.segments);
   }
 }

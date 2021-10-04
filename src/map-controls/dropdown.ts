@@ -63,7 +63,7 @@ export class ShowLapMarkers implements mapboxgl.IControl {
         const layerIDs: string[] = [];
         markers.features.forEach((feature) => {
           if (feature.properties !== null) {
-            const { lap, type } = feature.properties;
+            const { type } = feature.properties;
             const layerID = type;
 
             // Add a layer for this symbol type if it hasn't been added already.
@@ -116,7 +116,6 @@ export class ShowLapMarkers implements mapboxgl.IControl {
     });
 
     this.button.onclick = () => {
-      console.log('click');
       if (this.button.dataset.active === 'true') {
         this.button.style.backgroundColor = '';
         this.button.children[0].classList.add('theme--light');
@@ -137,7 +136,7 @@ export class ShowLapMarkers implements mapboxgl.IControl {
     return this.container;
   }
 
-  onRemove() {
+  onRemove(): void {
     if (this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);
     }
