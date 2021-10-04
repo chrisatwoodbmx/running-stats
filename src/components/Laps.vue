@@ -19,8 +19,8 @@ export default Vue.extend({
         { text: 'Lap', value: 'lap' },
         { text: 'Distance', value: 'distance' },
         { text: 'Elasped distance', value: 'elapsedDistance' },
-        { text: 'Time', value: 'time' },
-        { text: 'Elasped time', value: 'elapsedTime' },
+        { text: 'Time', value: 'duration' },
+        { text: 'Elasped time', value: 'elapsedDuration' },
         { text: 'Pace', value: 'avgPace' },
         { text: 'Best pace', value: 'maxPace' },
         { text: 'Avg cadence', value: 'cadence' },
@@ -39,8 +39,10 @@ export default Vue.extend({
   mounted() {
     (this.activity as Activity).segments.forEach((seg, index) => {
       const lap = index + 1;
-      const distance = this.formatKM(seg.getDistance());
-      const time = formatTime(seg.getDuration());
+      const distance = this.formatKM(seg.distance);
+      const elapsedDistance = this.formatKM(seg.elapsedDistance);
+      const duration = formatTime(seg.duration);
+      const elapsedDuration = formatTime(seg.elapsedDuration);
 
       const pace = {
         avg: this.formatPace(seg.pace.avg),
@@ -55,9 +57,9 @@ export default Vue.extend({
       this.fullData.push({
         lap,
         distance,
-        elapsedDistance: 'tbc',
-        time,
-        elapsedTime: 'tbc',
+        elapsedDistance,
+        duration,
+        elapsedDuration,
         avgPace: pace.avg,
         maxPace: pace.min,
         cadence: seg.cadence.avg,

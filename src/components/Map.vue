@@ -6,9 +6,8 @@
 import Vue, { PropType } from 'vue';
 
 import mapboxgl from 'mapbox-gl';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import Activity from '@/models/Activity';
+import { ShowLapMarkers } from '@/map-controls/dropdown';
 
 export default Vue.extend({
   props: {
@@ -24,7 +23,7 @@ export default Vue.extend({
       access_token:
         'pk.eyJ1IjoiY2hyaXNhdHdvb2RibXgiLCJhIjoiY2pxcXI1cm91MGUwZTQzcGY4MTVzOGlteCJ9.XoKxWoArb_EWpt_xdrLlWQ',
       center: [0, 0] as [number, number],
-      map: {} as any,
+      map: {} as mapboxgl.Map,
     };
   },
   mounted() {
@@ -40,27 +39,6 @@ export default Vue.extend({
           style: 'mapbox://styles/mapbox/streets-v11',
           center: this.center,
           zoom: 10,
-        });
-
-        const geocoder = new MapboxGeocoder({
-          accessToken: this.access_token,
-          mapboxgl: this.map,
-          marker: false,
-        });
-
-        geocoder.on('result', (e: any) => {
-          const marker = new mapboxgl.Marker({
-            draggable: true,
-            color: '#D80739',
-          })
-            .setLngLat(e.result.center)
-            .addTo(this.map);
-
-          this.center = e.result.center;
-
-          marker.on('dragend', () => {
-            this.center = e.target.getLngLat() as [number, number];
-          });
         });
 
         const geojson = {
@@ -92,8 +70,7 @@ export default Vue.extend({
         this.map.on('load', () => {
           this.map.addSource('route', {
             type: 'geojson',
-            data: geojson,
-            lineMetrics: true,
+            data: geojson as any,
           });
 
           this.map.addLayer({
@@ -138,7 +115,10 @@ export default Vue.extend({
         this.map.fitBounds(bounds, {
           padding: 20,
         });
-        this.map.addControl(geocoder);
+        // this.map.addControl(geocoder);
+        this.map.addControl(new mapboxgl.FullscreenControl());
+        this.map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+        this.map.addControl(new ShowLapMarkers(this.activity.segments), 'top-left');
       } catch (err) {
         console.log('map error', err);
       }

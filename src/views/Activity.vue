@@ -1,8 +1,27 @@
 <template>
   <div>
-    <VContainer fluid>
+    <VContainer>
       <VRow>
-        <VCol md="12">
+        <VCol v-if="$vuetify.breakpoint.lgAndUp" lg="2">
+          <VNavigationDrawer permanent>
+            <VList>
+              <VListItem
+                v-for="section of sections"
+                :key="`desktop-${section.url}`"
+                :to="`#${section.url}`"
+              >
+                <VListItemIcon>
+                  <VIcon v-text="section.icon" />
+                </VListItemIcon>
+                <VListItemTitle v-text="section.title" />
+              </VListItem>
+            </VList>
+          </VNavigationDrawer>
+        </VCol>
+
+        <VCol md="12" lg="10">
+          {{ $route.hash }}
+          <span class="text-sm" v-text="activity.timestamp" />
           <h1 clas="text-h1" v-text="activity.name" />
           <VRow>
             <VCol>
@@ -20,28 +39,33 @@
           </VRow>
 
           <Map :activity="activity" />
-          <VTabs v-model="tab" centered class="my-4">
-            <VTab>Graphs</VTab>
-            <VTab>Stats</VTab>
-            <VTab>Data</VTab>
-          </VTabs>
-          <VTabsItems v-model="tab">
-            <VTabItem>
-              <PaceChart />
-              <SpeedChart />
-              <ElevationChart />
-              <HRChart />
-            </VTabItem>
-            <VTabItem>
-              Stats
-            </VTabItem>
-            <VTabItem>
+          <VFadeTransition group>
+            <template v-if="$route.hash === '#graphs'">
+              <PaceChart :key="'pace-chart'" />
+              <SpeedChart :key="'speed-chart'" />
+              <ElevationChart :key="'elevation-chart'" />
+              <HRChart :key="'hr-chart'" />
+            </template>
+          </VFadeTransition>
+          <VFadeTransition>
+            <template v-if="$route.hash === '#stats'">
+              stats
+            </template>
+          </VFadeTransition>
+          <VFadeTransition>
+            <template v-if="$route.hash === '#laps'">
               <Laps />
-            </VTabItem>
-          </VTabsItems>
+            </template>
+          </VFadeTransition>
         </VCol>
       </VRow>
     </VContainer>
+    <VBottomNavigation v-if="$vuetify.breakpoint.mdAndDown" fixed hide-on-scroll grow>
+      <VBtn v-for="section of sections" :to="`#${section.url}`" :key="section.url">
+        <span v-text="section.title" />
+        <VIcon v-text="section.icon" />
+      </VBtn>
+    </VBottomNavigation>
   </div>
 </template>
 
@@ -68,6 +92,23 @@ export default Vue.extend({
         elements: { point: { radius: 0 } },
       },
       tab: 'Graphs',
+      sections: [
+        {
+          title: 'Overview',
+          url: 'overview',
+          icon: 'mdi-clipboard-list',
+        },
+        {
+          title: 'Laps',
+          url: 'laps',
+          icon: 'mdi-timer-outline',
+        },
+        {
+          title: 'Graphs',
+          url: 'graphs',
+          icon: 'mdi-chart-bell-curve-cumulative',
+        },
+      ],
     };
   },
   components: {

@@ -2,8 +2,8 @@ export interface FullSegment {
   lap: number;
   distance: string;
   elapsedDistance: string;
-  time: string;
-  elapsedTime: string;
+  duration: string;
+  elapsedDuration: string;
   avgPace: string;
   maxPace: string;
   cadence: number;

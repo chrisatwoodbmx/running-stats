@@ -7,10 +7,13 @@ import Segment from './Segment';
 import Stats from './Stats';
 import { toMeters } from '@/helpers/Units';
 import { getBearing, getPointByDistance } from '@/helpers/Coordinates';
+import { createSegment } from '@/helpers/Segment';
 
 // eslint-disable-next-line no-shadow
 export enum SPLIT {
   KM = 1000,
+  LAP = 400,
+  MILE = 1609.34,
 }
 export default class Activity extends Stats {
   public points: Point[];
@@ -27,7 +30,7 @@ export default class Activity extends Stats {
 
     this.segments = [];
     this.points = [];
-    this.split = SPLIT.KM;
+    this.split = SPLIT.LAP;
   }
 
   public setPoints(points: Point[]): void {
@@ -111,7 +114,7 @@ export default class Activity extends Stats {
 
     const splittingPoints = this.points.filter((point, index) => {
       const currentSplitDistance = this.split * splits;
-      const division = point.elapsedDistance / currentSplitDistance;
+      const division = point.getElapsedDistance() / currentSplitDistance;
       const remainder = Math.floor(division);
 
       if (remainder === 1) {
@@ -121,15 +124,10 @@ export default class Activity extends Stats {
         /* Check if it's exactly dividable into the this.split */
         if (division - remainder > 0 && index !== this.points.length - 1) {
           const distance = toMeters(division - remainder);
-          const distanceBeforeSplit = currentSplitDistance - this.points[index - 1].elapsedDistance;
 
-          console.log(
-            this.points[index - 1].elapsedDistance,
-            point.elapsedDistance,
-            distanceBeforeSplit,
-            point.distance,
-            distance,
-          );
+          // eslint-disable-next-line max-len
+          const distanceBeforeSplit = currentSplitDistance - this.points[index - 1].getElapsedDistance();
+
           const percentage = (distanceBeforeSplit / point.distance) * 100;
           const duration = point.duration.toMillis() / percentage;
 
@@ -150,10 +148,7 @@ export default class Activity extends Stats {
           splitPoint1.setDistance(distanceBeforeSplit);
           splitPoint1.setDuration(middleTimestamp);
           splitPoint1.setElapsedDuration(point.elapsedDuration.minus(duration));
-
-          splitPoint1.setElapsedDistance(
-            this.points[index - 1].elapsedDistance + distanceBeforeSplit,
-          );
+          splitPoint1.setElapsedDistance(this.points[index - 1].getElapsedDistance());
 
           splitPoint1.setPace(point.pace);
           splitPoint1.setSpeed(point.speed);
@@ -169,13 +164,13 @@ export default class Activity extends Stats {
             middleTimestamp.toISO(),
             true,
           );
-          splitPoint2.setDistance(distance);
+          splitPoint2.setDistance(point.distance - distanceBeforeSplit);
           splitPoint2.setDuration(this.points[index + 1].timestamp);
-          splitPoint1.setElapsedDuration(
+          splitPoint2.setElapsedDuration(
             point.elapsedDuration.plus(point.duration.toMillis() - duration),
           );
 
-          splitPoint2.setElapsedDistance(point.elapsedDistance + distance);
+          splitPoint2.setElapsedDistance(splitPoint1.getElapsedDistance());
 
           splitPoint2.setPace(point.pace);
           splitPoint2.setSpeed(point.speed);
@@ -190,26 +185,42 @@ export default class Activity extends Stats {
     });
 
     splittingPoints.forEach((split, index) => {
-      const seg = new Segment();
       const startIndex = index === 0 ? 0 : splittingPoints[index - 1].index;
       const endIndex = split.index;
-
       const points = this.points.slice(startIndex, endIndex);
-      seg.addPoints(points);
-      this.segments.push(seg);
+
+      this.segments.push(
+        createSegment(
+          points,
+          index !== 0
+            ? {
+              duration: this.segments[index - 1].elapsedDuration,
+              distance: this.segments[index - 1].elapsedDistance,
+            }
+            : undefined,
+        ),
+      );
     });
 
     if (
       splittingPoints[splittingPoints.length - 1].index
       !== this.points[this.points.length - 1].index
     ) {
-      const seg = new Segment();
       const startIndex = splittingPoints[splittingPoints.length - 1].index;
       const endIndex = this.points[this.points.length - 1].index;
-
       const points = this.points.slice(startIndex, endIndex);
-      seg.addPoints(points);
-      this.segments.push(seg);
+
+      this.segments.push(
+        createSegment(
+          points,
+          this.segments.length !== 0
+            ? {
+              duration: this.segments[this.segments.length - 1].elapsedDuration,
+              distance: this.segments[this.segments.length - 1].elapsedDistance,
+            }
+            : undefined,
+        ),
+      );
     }
 
     console.log(this.segments);

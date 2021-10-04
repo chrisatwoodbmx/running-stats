@@ -85,6 +85,7 @@ export default class Point {
 
   public setDistance(distance: number): void {
     this.distance = distance;
+    this.elapsedDistance = distance;
   }
 
   public setDuration(nextPointTimestamp: DateTime): void {
