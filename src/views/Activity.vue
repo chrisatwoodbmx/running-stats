@@ -1,8 +1,8 @@
 <template>
   <div>
-    <VContainer>
+    <VContainer class="mt-8">
       <VRow>
-        <VCol v-if="$vuetify.breakpoint.lgAndUp" lg="2">
+        <VCol v-if="$vuetify.breakpoint.mdAndUp" md="3" lg="2">
           <VNavigationDrawer permanent>
             <VList>
               <VListItem
@@ -19,26 +19,59 @@
           </VNavigationDrawer>
         </VCol>
 
-        <VCol md="12" lg="10">
-          {{ $route.hash }}
-          <span class="text-sm" v-text="activity.timestamp" />
-          <h1 clas="text-h1" v-text="activity.name" />
+        <VCol md="9" lg="10">
           <VRow>
-            <VCol>
-              <ActivityStat :value="displayAsKM(activity.elapsedDistance)" title="Distance" />
+            <VCol md="12" lg="6">
+              <h1 clas="text-h1 mb-1" v-text="activity.name" />
+              <span class="text-sm mt-n2 d-block" v-text="displayTime(activity.time.start)" />
             </VCol>
-            <VCol>
-              <ActivityStat :value="displayTime(activity.elapsedDuration)" title="Duration" />
+            <VCol md="12" lg="6">
+              <VCard flat>
+                <VCardText>
+                  <div class="d-flex mb-4 mt-4 mt-md-0 flex-fill" style="gap: 16px">
+                    <ActivityStat
+                      :includeBorder="true"
+                      :value="displayAsKM(activity.elapsedDistance)"
+                      title="Distance"
+                    />
+                    <ActivityStat
+                      :includeBorder="true"
+                      :value="displayTime(activity.elapsedDuration)"
+                      title="Time"
+                    />
+                    <ActivityStat
+                      :includeBorder="true"
+                      :value="displayPace(activity.pace.avg)"
+                      title="Pace"
+                    />
+                    <ActivityStat
+                      :includeBorder="false"
+                      :value="`${activity.elevation.total}m`"
+                      title="Elevation"
+                    />
+                  </div>
+                  <VDivider />
+
+                  <VSimpleTable>
+                    <tbody>
+                      <tr>
+                        <th>Total time</th>
+                        <td v-text="displayTime(activity.elapsedDuration)" />
+                      </tr>
+                      <tr>
+                        <th>Average HR</th>
+                        <td v-text="`${activity.HR.avg.toFixed(0)} bpm`" />
+                      </tr>
+                    </tbody>
+                  </VSimpleTable>
+                </VCardText>
+              </VCard>
             </VCol>
-            <VCol>
-              <ActivityStat :value="displayPace(activity.pace.avg)" title="Pace" />
-            </VCol>
-            <VCol>
-              <ActivityStat :value="`${activity.elevation.total}m`" title="Total elevation" />
+            <VCol md="12" lg="6">
+              <Map :activity="activity" />
             </VCol>
           </VRow>
 
-          <Map :activity="activity" />
           <VFadeTransition group>
             <template v-if="$route.hash === '#graphs'">
               <PaceChart :key="'pace-chart'" />
@@ -60,7 +93,7 @@
         </VCol>
       </VRow>
     </VContainer>
-    <VBottomNavigation v-if="$vuetify.breakpoint.mdAndDown" fixed hide-on-scroll grow>
+    <VBottomNavigation v-if="$vuetify.breakpoint.smAndDown" fixed hide-on-scroll grow>
       <VBtn v-for="section of sections" :to="`#${section.url}`" :key="section.url">
         <span v-text="section.title" />
         <VIcon v-text="section.icon" />
@@ -72,11 +105,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'vuex';
-import { Duration } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import Map from '@/components/Map.vue';
 import PaceChart from '@/components/graphs/Pace.vue';
 import SpeedChart from '@/components/graphs/Speed.vue';
-import { formatTime, toKM } from '@/helpers/Units';
+import { formatDateTime, formatTime, toKM } from '@/helpers/Units';
 import ActivityStat from '@/components/ActivityStat.vue';
 import ElevationChart from '@/components/graphs/Elevation.vue';
 import HRChart from '@/components/graphs/HR.vue';
@@ -134,8 +167,10 @@ export default Vue.extend({
     displayAsKM(distance: number) {
       return `${toKM(distance).toFixed(2)}km`;
     },
-    displayTime(duration: Duration) {
-      return formatTime(duration);
+    displayTime(duration: Duration | DateTime) {
+      if (duration instanceof Duration) return formatTime(duration);
+
+      return formatDateTime(duration);
     },
     displayPace(pace: number) {
       return formatTime(

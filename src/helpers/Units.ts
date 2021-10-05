@@ -1,4 +1,4 @@
-import { Duration } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 
 const hour = 3600;
 
@@ -18,6 +18,10 @@ export function formatTime(duration?: Duration, full = false): string {
   }
 
   return full ? duration.toFormat('mm:ss') : duration.toFormat('m:ss');
+}
+
+export function formatDateTime(datetime: DateTime): string {
+  return datetime.toLocaleString(DateTime.DATETIME_FULL);
 }
 
 export function metersToKmPerMinute(meters: number): number {

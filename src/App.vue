@@ -1,13 +1,12 @@
 <template>
-  <v-app>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet" />
-    <v-app-bar app color="primary" dark>
+  <VApp>
+    <VAppBar app color="white" dark>
       <div class="d-flex align-center">
         <v-img
           alt="Vuetify Logo"
           class="shrink mr-2"
           contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-light.png"
           transition="scale-transition"
           width="40"
         />
@@ -17,23 +16,23 @@
           class="shrink mt-1 hidden-sm-and-down"
           contain
           min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
+          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-light.png"
           width="100"
         />
       </div>
 
-      <v-spacer></v-spacer>
+      <VSpacer />
 
-      <v-btn href="https://github.com/vuetifyjs/vuetify/releases/latest" target="_blank" text>
+      <VBtn href="https://github.com/vuetifyjs/vuetify/releases/latest" target="_blank" text>
         <span class="mr-2">Latest Release</span>
         <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
+      </VBtn>
+    </VAppBar>
 
-    <v-main>
+    <VMain>
       <router-view />
-    </v-main>
-  </v-app>
+    </VMain>
+  </VApp>
 </template>
 
 <script lang="ts">
