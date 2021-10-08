@@ -6,6 +6,7 @@
 import Vue, { PropType } from 'vue';
 
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import Activity from '@/models/Activity';
 import { ShowLapMarkers } from '@/map-controls/dropdown';
 

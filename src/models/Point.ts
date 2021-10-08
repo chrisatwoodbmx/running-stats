@@ -88,8 +88,14 @@ export default class Point {
     this.elapsedDistance = distance;
   }
 
-  public setDuration(nextPointTimestamp: DateTime): void {
-    this.duration = nextPointTimestamp.diff(this.timestamp);
+  public setDuration(nextPointTimestamp: DateTime, previousPointStamp?: DateTime): void {
+    const diff = nextPointTimestamp.diff(this.timestamp);
+
+    if (diff.milliseconds > 60000 && previousPointStamp !== undefined) {
+      this.duration = this.timestamp.diff(previousPointStamp);
+    } else {
+      this.duration = nextPointTimestamp.diff(this.timestamp);
+    }
   }
 
   public setElevation(value: number): void {

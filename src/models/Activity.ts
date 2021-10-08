@@ -30,7 +30,7 @@ export default class Activity extends Stats {
 
     this.segments = [];
     this.points = [];
-    this.split = SPLIT.LAP;
+    this.split = SPLIT.KM;
   }
 
   public setPoints(points: Point[]): void {
@@ -57,8 +57,9 @@ export default class Activity extends Stats {
         this.points.forEach(async (point, i, array) => {
           if (i === this.points.length - 1) return;
           const nextPoint = this.points[i + 1];
+          const previousPoint = this.points[i - 1];
 
-          point.setDuration(nextPoint.timestamp);
+          point.setDuration(nextPoint.timestamp, previousPoint?.timestamp);
           point.setElapsedDuration(this.elapsedDuration);
           this.elapsedDuration = point.elapsedDuration;
 
