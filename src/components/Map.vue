@@ -1,5 +1,11 @@
 <template>
-  <div id="map" style="height: 300px"></div>
+  <div>
+    <div id="map" style="height: 300px"></div>
+    <div class=" d-block text-center ">
+      <span id="hsl-preview-label" class="text-subtitle-1">Speed band (Slow - Fast)</span>
+      <span aria-labelledby="hsl-preview-label" class="mx-auto d-block hsl-previous" />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -48,9 +54,8 @@ export default Vue.extend({
         };
 
         this.activity.points.forEach((point, index) => {
-          const hue = point.speedBand * (240 - 1) + 1;
-
-          const hsl = `hsl(${hue}, 100%, 50%)`;
+          const hsl = `hsl(${point.speedBand}, 100%, 50%)`;
+          console.log(hsl);
 
           if (index !== this.activity.points.length - 1) {
             geojson.features.push({
@@ -127,3 +132,9 @@ export default Vue.extend({
   },
 });
 </script>
+<style lang="sass" scoped>
+.hsl-previous
+  width: 100px
+  height: 20px
+  background-image: linear-gradient(90deg, #F00 0%, yellow 33%, #0F0 66%, #00F 100%)
+</style>

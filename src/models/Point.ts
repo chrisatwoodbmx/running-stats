@@ -1,4 +1,5 @@
 import { DateTime, Duration } from 'luxon';
+import { normalise } from '@/helpers/Normalise';
 import {
   Lat, LatLong, Long, LongLat,
 } from './Point.d';
@@ -132,8 +133,8 @@ export default class Point {
     this.fastest = true;
   }
 
-  public setSpeedBand(unit: number): void {
-    this.speedBand = this.speed / unit / 100;
+  public setSpeedBand(min: number, max: number): void {
+    this.speedBand = normalise(this.speed, min, max, 255);
   }
 
   public setShadowPoint(point: Point): void {
