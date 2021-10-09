@@ -168,10 +168,8 @@ export default class Stats {
   }
 
   private setSpeedBand(points: Point[]) {
-    const bucket = (this.speed.min.value - this.speed.max.value) / 100;
-
     points.forEach((point) => {
-      point.setSpeedBand(bucket);
+      point.setSpeedBand(this.speed.min.value, this.speed.max.value);
     });
   }
 
