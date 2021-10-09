@@ -1,6 +1,8 @@
 import mapboxgl from 'mapbox-gl';
+import { Duration } from 'luxon';
 import vuetify from '@/plugins/vuetify';
 import Segment from '@/models/Segment';
+import { formatTime, toKM } from '@/helpers/Units';
 
 export class ShowLapMarkers implements mapboxgl.IControl {
   public button!: HTMLButtonElement;
@@ -30,6 +32,35 @@ export class ShowLapMarkers implements mapboxgl.IControl {
       features: [],
     };
 
+    const startEndMarkers: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [],
+    };
+    startEndMarkers.features.push(
+      {
+        type: 'Feature',
+        properties: {
+          icon: 'start-icon',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: this.segments[0].points[0].lngLat(),
+        },
+      },
+      {
+        type: 'Feature',
+        properties: {
+          icon: 'end-icon',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: this.segments[this.segments.length - 1].points[
+            this.segments[this.segments.length - 1].points.length - 1
+          ].lngLat(),
+        },
+      },
+    );
+
     this.segments.forEach((segment, index) => {
       markers.features.push({
         type: 'Feature',
@@ -37,6 +68,9 @@ export class ShowLapMarkers implements mapboxgl.IControl {
           lap: index + 1,
           type: 'lap-marker',
           icon: 'road-shield',
+          pace: segment.pace.avg,
+          HR: segment.HR.avg,
+          elapsedDistance: segment.elapsedDistance,
         },
         geometry: {
           type: 'Point',
@@ -45,51 +79,118 @@ export class ShowLapMarkers implements mapboxgl.IControl {
       });
     });
 
-    map.on('load', () => {
+    map.on('load', async () => {
+      map.loadImage('/img/icons/Start.png', (error, startIcon) => {
+        if (error) throw error;
+        map.addImage('start-icon', startIcon as any);
+
+        map.loadImage('/img/icons/End.png', (e, endIcon) => {
+          if (e) throw error;
+
+          map.addImage('end-icon', endIcon as any);
+          map.addSource('start-end-markers', {
+            type: 'geojson',
+            data: startEndMarkers,
+          });
+
+          map.addLayer({
+            id: 'start-end-icons',
+            type: 'symbol',
+            source: 'start-end-markers',
+            layout: {
+              'icon-image': ['get', 'icon'],
+              'icon-size': 0.3,
+            },
+          });
+        });
+      });
+
       // Load an image from an external URL.
       map.loadImage('/img/icons/oval.png', (error, image) => {
         if (error) throw error;
 
-        // Add the image to the map style.
-        // const image = document.createElement('img');
-        // image.src = 'https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-ios7-circle-outline-512.png';
-        map.addImage('cat', image as any);
+        map.addImage('lap-icon', image as any);
 
         // Add a GeoJSON source containing place coordinates and information.
         map.addSource('lap-markers', {
           type: 'geojson',
           data: markers,
         });
-        const layerIDs: string[] = [];
-        markers.features.forEach((feature) => {
-          if (feature.properties !== null) {
-            const { type } = feature.properties;
-            const layerID = type;
 
-            // Add a layer for this symbol type if it hasn't been added already.
-            if (!map.getLayer(layerID)) {
-              map.addLayer({
-                id: layerID,
-                type: 'symbol',
-                source: 'lap-markers',
-                layout: {
-                  // These icons are a part of the Mapbox Light style.
-                  // To view all images available in a Mapbox style, open
-                  // the style in Mapbox Studio and click the "Images" tab.
-                  // To add a new image to the style at runtime see
-                  // https://docs.mapbox.com/mapbox-gl-js/example/add-image/
-                  'icon-image': 'cat',
-                  'icon-size': 0.3,
+        map
+          .addLayer({
+            id: 'lap-marker-icons',
+            type: 'symbol',
+            source: 'lap-markers',
+            layout: {
+              // These icons are a part of the Mapbox Light style.
+              // To view all images available in a Mapbox style, open
+              // the style in Mapbox Studio and click the "Images" tab.
+              // To add a new image to the style at runtime see
+              // https://docs.mapbox.com/mapbox-gl-js/example/add-image/
+              'icon-image': 'lap-icon',
+              'icon-size': 0.3,
 
-                  // 'icon-allow-overlap': true,
-                  'text-field': ['get', 'lap'],
-                  'text-size': 10,
-                },
-              });
-              layerIDs.push(layerID);
+              // 'icon-allow-overlap': true,
+              'text-field': ['get', 'lap'],
+              'text-size': 10,
+            },
+          })
+          .on('click', 'lap-marker-icons', (e) => {
+            // Copy coordinates array.
+            if (e.features === undefined) return;
+            const coordinates = (e.features[0].geometry as any).coordinates.slice();
+            const {
+              pace, HR, elapsedDistance, lap,
+            } = e.features[0].properties as {
+              pace: number;
+              HR: number;
+              elapsedDistance: number;
+              lap: number;
+            };
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+              coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
             }
-          }
-        });
+            const formattedPace = formatTime(
+              Duration.fromObject({
+                seconds: pace,
+              }),
+              true,
+            );
+            const formattedHR = HR.toFixed(0);
+            const foramttedElapsedDistance = toKM(elapsedDistance).toFixed(2);
+            new mapboxgl.Popup()
+              .setLngLat(coordinates)
+              .setHTML(
+                `
+                <table><tbody>
+                  <tr>
+                    <th>Lap</th>
+                    <td>${lap}</td>
+                  </tr>
+                  <tr>
+                    <th>Pace</th>
+                    <td>${formattedPace}</td>
+                  </tr>
+                  <tr>
+                    <th>Avg HR</th>
+                    <td>${formattedHR}</td>
+                  </tr>
+                  <tr>
+                    <th>Elasped distance</th>
+                    <td>${foramttedElapsedDistance}</td>
+                  </tr>
+                  </tbody>
+                </table>`,
+              )
+              .addTo(map);
+          });
+
+        map.setLayoutProperty('lap-marker-icons', 'visibility', 'none');
 
         this.button.onclick = () => {
           if (this.button.dataset.active === 'true') {
@@ -98,18 +199,14 @@ export class ShowLapMarkers implements mapboxgl.IControl {
             this.button.children[0].classList.remove('theme--dark');
             this.button.dataset.active = 'false';
 
-            layerIDs.forEach((layerID) => {
-              map.setLayoutProperty(layerID, 'visibility', 'none');
-            });
+            map.setLayoutProperty('lap-marker-icons', 'visibility', 'none');
           } else {
             this.button.style.backgroundColor = vuetify.preset.theme.themes.light.primary?.toString() || '';
             this.button.children[0].classList.remove('theme--light');
             this.button.children[0].classList.add('theme--dark');
             this.button.dataset.active = 'true';
 
-            layerIDs.forEach((layerID) => {
-              map.setLayoutProperty(layerID, 'visibility', 'visible');
-            });
+            map.setLayoutProperty('lap-marker-icons', 'visibility', 'visible');
           }
         };
       });
