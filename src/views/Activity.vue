@@ -46,7 +46,7 @@
                     />
                     <ActivityStat
                       :includeBorder="false"
-                      :value="`${activity.elevation.total}m`"
+                      :value="`${activity.elevation.total.toFixed(0)}m`"
                       title="Elevation"
                     />
                   </div>
@@ -62,13 +62,17 @@
                         <th>Average HR</th>
                         <td v-text="`${activity.HR.avg.toFixed(0)} bpm`" />
                       </tr>
+                      <tr>
+                        <th>Laps</th>
+                        <td v-text="`${activity.segments.length} `" />
+                      </tr>
                     </tbody>
                   </VSimpleTable>
                 </VCardText>
               </VCard>
             </VCol>
             <VCol md="12" lg="6">
-              <Map :activity="activity" />
+              <Map />
             </VCol>
           </VRow>
 
@@ -114,13 +118,13 @@ import ActivityStat from '@/components/ActivityStat.vue';
 import ElevationChart from '@/components/graphs/Elevation.vue';
 import HRChart from '@/components/graphs/HR.vue';
 import Laps from '@/components/Laps.vue';
+import { SPLIT } from '@/models/Activity';
 
 export default Vue.extend({
   name: 'Activity',
 
   data() {
     return {
-      processing: false,
       options: {
         elements: { point: { radius: 0 } },
       },
@@ -153,8 +157,19 @@ export default Vue.extend({
     HRChart,
     Laps,
   },
-  computed: mapState(['activityData', 'activity', 'progress']),
+  computed: {
+    ...mapState(['split', 'activityData', 'activity', 'progress']),
+    processing: {
+      get() {
+        return this.$store.state.processing;
+      },
+      set(value: boolean) {
+        this.$store.commit('setProcessing', value);
+      },
+    },
+  },
   mounted() {
+    this.processing = true;
     if (
       this.activity
       && Object.keys(this.activity).length === 0
@@ -162,6 +177,17 @@ export default Vue.extend({
     ) {
       this.$router.push('/');
     }
+
+    this.processing = false;
+  },
+  watch: {
+    split(value: SPLIT) {
+      this.activity.setSplit(value);
+      this.processing = true;
+      this.activity.processSegments(true);
+      this.processing = false;
+      this.$store.commit('addActivity', this.activity);
+    },
   },
   methods: {
     displayAsKM(distance: number) {

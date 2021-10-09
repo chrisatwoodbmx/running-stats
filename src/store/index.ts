@@ -9,20 +9,29 @@ export default new Vuex.Store({
     activityData: {},
     progress: 0,
     activity: {} as Activity,
-    split: SPLIT,
+    split: SPLIT.KM,
+    processing: false,
+    age: 22,
   },
   mutations: {
     addActivityData(state, data: any) {
       state.activityData = data;
     },
     addActivity(state, activity: Activity) {
+      console.log('UPDATE', activity);
       state.activity = activity;
     },
     addProgress(state, progress: number) {
       state.progress = progress;
     },
-    setSplit(state, split: typeof SPLIT) {
+    setProcessing(state, value: boolean) {
+      state.processing = value;
+    },
+    setSplit(state, split: SPLIT) {
       state.split = split;
+    },
+    setAge(state, age: number) {
+      state.age = age;
     },
   },
   actions: {},

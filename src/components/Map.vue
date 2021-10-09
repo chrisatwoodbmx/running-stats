@@ -9,20 +9,14 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue from 'vue';
 
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Activity from '@/models/Activity';
+import { mapState } from 'vuex';
 import { ShowLapMarkers } from '@/map-controls/dropdown';
 
 export default Vue.extend({
-  props: {
-    activity: {
-      type: Object as PropType<Activity>,
-      required: true,
-    },
-  },
   data() {
     return {
       loading: false,
@@ -33,10 +27,30 @@ export default Vue.extend({
       map: {} as mapboxgl.Map,
     };
   },
-  mounted() {
-    this.createMap();
+  computed: mapState(['activity']),
+  async mounted() {
+    this.center = this.activity.points[0].lngLat();
+    await this.createMap();
+    this.addLapMarkers();
+  },
+  watch: {
+    // eslint-disable-next-line func-names
+    activity: {
+      async handler(value) {
+        console.log(value);
+        await this.createMap();
+        this.addLapMarkers(true);
+      },
+      deep: true,
+    },
+  },
+  updated() {
+    console.log('updated');
   },
   methods: {
+    addLapMarkers(reRender = false) {
+      this.map.addControl(new ShowLapMarkers(this.activity.segments, reRender), 'top-left');
+    },
     async createMap() {
       try {
         mapboxgl.accessToken = this.access_token;
@@ -55,7 +69,6 @@ export default Vue.extend({
 
         this.activity.points.forEach((point, index) => {
           const hsl = `hsl(${point.speedBand}, 100%, 50%)`;
-          console.log(hsl);
 
           if (index !== this.activity.points.length - 1) {
             geojson.features.push({
@@ -124,7 +137,6 @@ export default Vue.extend({
         // this.map.addControl(geocoder);
         this.map.addControl(new mapboxgl.FullscreenControl());
         this.map.addControl(new mapboxgl.NavigationControl(), 'top-left');
-        this.map.addControl(new ShowLapMarkers(this.activity.segments), 'top-left');
       } catch (err) {
         console.log('map error', err);
       }

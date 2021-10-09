@@ -110,9 +110,13 @@ export default class Activity extends Stats {
     this.time.total = this.time.end.minus({ milliseconds: this.time.start.toMillis() });
   }
 
-  public processSegments(): void {
-    let splits = 1;
+  public processSegments(reProcess = false): void {
+    if (reProcess) {
+      this.segments = [];
+      this.points.forEach((point) => point.resetShadowPoint());
+    }
 
+    let splits = 1;
     const splittingPoints = this.points.filter((point, index) => {
       const currentSplitDistance = this.split * splits;
       const division = point.getElapsedDistance() / currentSplitDistance;
@@ -223,5 +227,11 @@ export default class Activity extends Stats {
         ),
       );
     }
+
+    console.log('done');
+  }
+
+  public setSplit(split: SPLIT): void {
+    this.split = split;
   }
 }

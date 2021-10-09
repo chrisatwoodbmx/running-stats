@@ -13,8 +13,11 @@ export class ShowLapMarkers implements mapboxgl.IControl {
 
   public container!: HTMLDivElement;
 
-  constructor(segments: Segment[]) {
+  public reRender: boolean;
+
+  constructor(segments: Segment[], reRender = false) {
     this.segments = segments;
+    this.reRender = reRender;
   }
 
   onAdd(map: mapboxgl.Map): HTMLDivElement {
@@ -190,22 +193,21 @@ export class ShowLapMarkers implements mapboxgl.IControl {
               .addTo(map);
           });
 
-        map.setLayoutProperty('lap-marker-icons', 'visibility', 'none');
+        if (!this.reRender) {
+          this.deactivateButton();
+          map.setLayoutProperty('lap-marker-icons', 'visibility', 'none');
+        } else {
+          this.activateButton();
+          map.setLayoutProperty('lap-marker-icons', 'visibility', 'visible');
+        }
 
         this.button.onclick = () => {
           if (this.button.dataset.active === 'true') {
-            this.button.style.backgroundColor = '';
-            this.button.children[0].classList.add('theme--light');
-            this.button.children[0].classList.remove('theme--dark');
-            this.button.dataset.active = 'false';
+            this.deactivateButton();
 
             map.setLayoutProperty('lap-marker-icons', 'visibility', 'none');
           } else {
-            this.button.style.backgroundColor = vuetify.preset.theme.themes.light.primary?.toString() || '';
-            this.button.children[0].classList.remove('theme--light');
-            this.button.children[0].classList.add('theme--dark');
-            this.button.dataset.active = 'true';
-
+            this.activateButton();
             map.setLayoutProperty('lap-marker-icons', 'visibility', 'visible');
           }
         };
@@ -231,6 +233,20 @@ export class ShowLapMarkers implements mapboxgl.IControl {
     this.container.appendChild(this.button);
 
     return this.container;
+  }
+
+  deactivateButton(): void {
+    this.button.style.backgroundColor = '';
+    this.button.children[0].classList.add('theme--light');
+    this.button.children[0].classList.remove('theme--dark');
+    this.button.dataset.active = 'false';
+  }
+
+  activateButton(): void {
+    this.button.style.backgroundColor = vuetify.preset.theme.themes.light.primary?.toString() || '';
+    this.button.children[0].classList.remove('theme--light');
+    this.button.children[0].classList.add('theme--dark');
+    this.button.dataset.active = 'true';
   }
 
   onRemove(): void {

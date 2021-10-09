@@ -19,7 +19,6 @@ export default Vue.extend({
   data() {
     return {
       file: null as File | null,
-      processing: false,
       proccessed: false,
       options: {
         elements: { point: { radius: 0 } },
@@ -28,7 +27,17 @@ export default Vue.extend({
     };
   },
   components: {},
-  computed: mapState(['activityData', 'activity', 'progress']),
+  computed: {
+    ...mapState(['split', 'activityData', 'activity', 'progress']),
+    processing: {
+      get() {
+        return this.$store.state.processing;
+      },
+      set(value: boolean) {
+        this.$store.commit('setProcessing', value);
+      },
+    },
+  },
   watch: {
     file(newVal: File | null) {
       if (newVal === null) return;
@@ -81,6 +90,7 @@ export default Vue.extend({
       });
 
       const activity = new Activity(this.activityData.gpx.trk.name);
+      activity.setSplit(this.split);
       activity.setStartTime(this.activityData.gpx.metadata.time);
       activity.setEndTime(
         this.activityData.gpx.trk.trkseg.trkpt[this.activityData.gpx.trk.trkseg.trkpt.length - 1]
