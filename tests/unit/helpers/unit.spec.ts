@@ -1,9 +1,11 @@
 import { Duration } from 'luxon';
-import { formatTime, toKM, metersToKmPerMinute } from '@/helpers/Units';
+import {
+  formatTime, formatDistance, metersToKmPerMinute, SPLIT,
+} from '@/helpers/Units';
 
 describe('Unit helper', () => {
   test('Meters to KMs', () => {
-    expect(toKM(1)).toBe(0.001);
+    expect(formatDistance(1, SPLIT.KM)).toBe(0.001);
   });
 
   describe('Format time', () => {

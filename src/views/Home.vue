@@ -12,7 +12,7 @@ import { Duration } from 'luxon';
 import { readFile } from '../helpers/File';
 import Point from '@/models/Point';
 import Activity from '@/models/Activity';
-import { formatTime, toKM } from '@/helpers/Units';
+import { formatTime, formatDistance } from '@/helpers/Units';
 
 export default Vue.extend({
   name: 'Home',
@@ -110,7 +110,7 @@ export default Vue.extend({
     },
 
     displayAsKM(distance: number) {
-      return `${toKM(distance).toFixed(2)}km`;
+      return formatDistance(distance, this.split);
     },
     displayTime(duration: Duration) {
       return formatTime(duration);

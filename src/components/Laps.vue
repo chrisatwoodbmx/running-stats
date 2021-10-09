@@ -6,7 +6,7 @@
 import { Duration } from 'luxon';
 import Vue from 'vue';
 import { mapState } from 'vuex';
-import { formatTime, toKM } from '@/helpers/Units';
+import { formatTime, formatDistance } from '@/helpers/Units';
 import Activity from '@/models/Activity';
 import { FullSegment } from '@/models/Segment.d';
 
@@ -32,9 +32,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState({
-      activity: 'activity',
-    }),
+    ...mapState(['activity', 'split']),
   },
   mounted() {
     (this.activity as Activity).segments.forEach((seg, index) => {
@@ -79,7 +77,7 @@ export default Vue.extend({
       );
     },
     formatKM(meters: number) {
-      return toKM(meters).toFixed(2);
+      return formatDistance(meters, this.split);
     },
   },
 });

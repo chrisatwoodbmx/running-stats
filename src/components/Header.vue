@@ -57,7 +57,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { SPLIT } from '@/models/Activity';
+import { SPLIT } from '@/helpers/Units';
 
 export default Vue.extend({
   computed: {

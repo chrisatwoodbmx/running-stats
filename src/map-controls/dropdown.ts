@@ -2,7 +2,7 @@ import mapboxgl from 'mapbox-gl';
 import { Duration } from 'luxon';
 import vuetify from '@/plugins/vuetify';
 import Segment from '@/models/Segment';
-import { formatTime, toKM } from '@/helpers/Units';
+import { formatTime, formatDistance, SPLIT } from '@/helpers/Units';
 
 export class ShowLapMarkers implements mapboxgl.IControl {
   public button!: HTMLButtonElement;
@@ -15,9 +15,12 @@ export class ShowLapMarkers implements mapboxgl.IControl {
 
   public reRender: boolean;
 
-  constructor(segments: Segment[], reRender = false) {
+  public split: SPLIT;
+
+  constructor(segments: Segment[], split: SPLIT, reRender = false) {
     this.segments = segments;
     this.reRender = reRender;
+    this.split = split;
   }
 
   onAdd(map: mapboxgl.Map): HTMLDivElement {
@@ -165,7 +168,7 @@ export class ShowLapMarkers implements mapboxgl.IControl {
               true,
             );
             const formattedHR = HR.toFixed(0);
-            const foramttedElapsedDistance = toKM(elapsedDistance).toFixed(2);
+            const foramttedElapsedDistance = formatDistance(elapsedDistance, this.split);
             new mapboxgl.Popup()
               .setLngLat(coordinates)
               .setHTML(

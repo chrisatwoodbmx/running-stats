@@ -1,20 +1,17 @@
 import { DateTime } from 'luxon';
 
+import { TouchPitchHandler } from 'mapbox-gl';
 import Point from './Point';
 import { Lat, Long } from './Point.d';
+// eslint-disable-next-line import/no-cycle
 import { getDistance, getPaceAndSpeed } from '@/workers/Point.worker';
+// eslint-disable-next-line import/no-cycle
 import Segment from './Segment';
 import Stats from './Stats';
-import { toMeters } from '@/helpers/Units';
+import { toMeters, SPLIT } from '@/helpers/Units';
 import { getBearing, getPointByDistance } from '@/helpers/Coordinates';
 import { createSegment } from '@/helpers/Segment';
 
-// eslint-disable-next-line no-shadow
-export enum SPLIT {
-  KM = 1000,
-  LAP = 400,
-  MILE = 1609.34,
-}
 export default class Activity extends Stats {
   public points: Point[];
 
@@ -53,26 +50,31 @@ export default class Activity extends Stats {
     return longLats;
   }
 
-  public async processPoints(): Promise<void> {
+  public async processPoints(reProcess = false): Promise<void> {
     return new Promise((outerResolve) => {
       new Promise<void>((resolve): void => {
         this.points.forEach(async (point, i, array) => {
+          console.log(i);
           if (i === this.points.length - 1) return;
           const nextPoint = this.points[i + 1];
           const previousPoint = this.points[i - 1];
-
-          point.setDuration(nextPoint.timestamp, previousPoint?.timestamp);
-          point.setElapsedDuration(this.elapsedDuration);
-          this.elapsedDuration = point.elapsedDuration;
 
           const distance = await getDistance(
             [point.lat, point.long],
             [nextPoint.lat, nextPoint.long],
           );
 
-          point.setDistance(distance);
-          point.setElapsedDistance(this.elapsedDistance);
-          this.elapsedDistance += point.distance;
+          if (!reProcess) {
+            point.setDuration(nextPoint.timestamp, previousPoint?.timestamp);
+            point.setElapsedDuration(this.elapsedDuration);
+            this.elapsedDuration = point.elapsedDuration;
+
+            point.setDistance(distance);
+            point.setElapsedDistance(this.elapsedDistance);
+            this.elapsedDistance += point.distance;
+
+            point.setElevationChange(nextPoint.elevation.value - point.elevation.value);
+          }
 
           const { pace, speed } = await getPaceAndSpeed(
             distance,
@@ -87,8 +89,9 @@ export default class Activity extends Stats {
           }
         });
       }).then(() => {
-        this.processAverages(this.points);
+        if (!reProcess) this.processAverages(this.points);
 
+        console.log('outer done');
         outerResolve();
       });
     });

@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import Activity, { SPLIT } from '@/models/Activity';
+import Activity from '@/models/Activity';
+import { SPLIT } from '@/helpers/Units';
 
 Vue.use(Vuex);
 

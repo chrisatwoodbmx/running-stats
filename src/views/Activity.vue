@@ -142,13 +142,13 @@ import Map from '@/components/Map.vue';
 import PaceChart from '@/components/graphs/Pace.vue';
 import SpeedChart from '@/components/graphs/Speed.vue';
 import {
-  formatDateTime, formatTime, percentageOf, toKM,
+  formatDateTime, formatTime, formatDistance, SPLIT,
 } from '@/helpers/Units';
 import ActivityStat from '@/components/ActivityStat.vue';
 import ElevationChart from '@/components/graphs/Elevation.vue';
 import HRChart from '@/components/graphs/HR.vue';
 import Laps from '@/components/Laps.vue';
-import Activity, { SPLIT } from '@/models/Activity';
+import Activity from '@/models/Activity';
 import HRGauge from '@/components/HR-gauge.vue';
 
 export default Vue.extend({
@@ -231,7 +231,10 @@ export default Vue.extend({
     split(value: SPLIT) {
       (this.activity as Activity).setSplit(value);
       this.processing = true;
+      console.log('hit');
+
       (this.activity as Activity).processSegments(true);
+
       this.processing = false;
       this.$store.commit('addActivity', this.activity);
     },
@@ -244,7 +247,7 @@ export default Vue.extend({
   },
   methods: {
     displayAsKM(distance: number) {
-      return `${toKM(distance).toFixed(2)}km`;
+      return formatDistance(distance, this.split);
     },
     displayTime(duration: Duration | DateTime) {
       if (duration instanceof Duration) return formatTime(duration);
@@ -252,9 +255,23 @@ export default Vue.extend({
       return formatDateTime(duration);
     },
     displayPace(pace: number) {
+      if (this.split === SPLIT.KM) {
+        return formatTime(
+          Duration.fromObject({
+            seconds: pace,
+          }),
+        );
+      }
+      if (this.split === SPLIT.MILE) {
+        return formatTime(
+          Duration.fromObject({
+            seconds: pace * (SPLIT.MILE / 1000),
+          }),
+        );
+      }
       return formatTime(
         Duration.fromObject({
-          seconds: pace,
+          seconds: pace * (SPLIT.LAP / 1000),
         }),
       );
     },

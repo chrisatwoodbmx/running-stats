@@ -1,9 +1,30 @@
 import { DateTime, Duration } from 'luxon';
 
+// eslint-disable-next-line no-shadow
+export enum SPLIT {
+  KM = 1000,
+  LAP = 400,
+  MILE = 1609.34,
+}
+// eslint-disable-next-line no-shadow
+export enum UNITS {
+  'd1000' = 'KMs',
+  'd400' = 'laps',
+  'd1609.34' = 'm',
+}
+
 const hour = 3600;
 
 export function toKM(meters: number): number {
-  return meters * 0.001;
+  return meters / SPLIT.KM;
+}
+
+export function formatDistance(meters: number, split: SPLIT): string {
+  return `${(meters / split).toFixed(2)} ${UNITS[`d${split}` as 'd1000' | 'd400' | 'd1609.34']}`;
+}
+
+export function formatDistanceAsNumber(meters: number, split: SPLIT): number {
+  return meters / split;
 }
 
 export function toMeters(KMs: number): number {
