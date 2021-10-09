@@ -11,8 +11,8 @@ export default class Segment extends Stats {
 
   public duration: Duration;
 
-  constructor() {
-    super();
+  constructor(age: number) {
+    super(age);
 
     this.points = [];
     this.distance = 0;

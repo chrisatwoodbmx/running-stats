@@ -1,4 +1,6 @@
-import { HRZones, ZoneTypes } from './heart-rate.d';
+import { HRZones } from './heart-rate.d';
+import { normalise } from './Normalise';
+import { percentageOf } from './Units';
 
 export const maxHR = 220;
 
@@ -7,27 +9,31 @@ export const maxHR = 220;
  * @param {number} age User age
  */
 export function calculateZones(age: number): HRZones {
-  const z1 = maxHR - age * 5;
-  const z2 = maxHR - age * 4;
-  const z3 = maxHR - age * 3;
-  const z4 = maxHR - age * 2;
-  const z5 = maxHR - age;
+  const HRMax = maxHR - age;
 
   return {
-    z1: { max: z1, min: z1 - age },
-    z2: { max: z2, min: z2 - age },
-    z3: { max: z3, min: z3 - age },
-    z4: { max: z4, min: z4 - age },
-    z5: { max: z5, min: z5 - age },
+    z0: 0,
+    z1: Math.round(percentageOf(50, HRMax)),
+    z2: Math.round(percentageOf(60, HRMax)),
+    z3: Math.round(percentageOf(70, HRMax)),
+    z4: Math.round(percentageOf(80, HRMax)),
+    z5: Math.round(percentageOf(90, HRMax)),
+    max: HRMax,
   };
 }
 
 export function getZone(HR: number, zones: HRZones): number {
-  if (HR < zones.z1.min || (HR >= zones.z1.min && HR < zones.z1.max)) return 1;
-  if (HR >= zones.z2.min && HR < zones.z2.max) return 2;
-  if (HR >= zones.z3.min && HR < zones.z3.max) return 3;
-  if (HR >= zones.z4.min && HR < zones.z4.max) return 4;
+  if (HR < zones.z1) return 0;
+  if (HR >= zones.z1 && HR < zones.z2) return 1;
+  if (HR >= zones.z2 && HR < zones.z3) return 2;
+  if (HR >= zones.z3 && HR < zones.z4) return 3;
+  if (HR >= zones.z4 && HR < zones.z5) return 4;
   return 5;
 }
 
+export function getAngle(HR: number, zones: HRZones): number {
+  const norm = normalise(HR, zones.z1, zones.max, 180);
+
+  return norm;
+}
 export default {};

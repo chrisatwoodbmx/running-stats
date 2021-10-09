@@ -25,9 +25,14 @@
               <h1 clas="text-h1 mb-1" v-text="activity.name" />
               <span class="text-sm mt-n2 d-block" v-text="displayTime(activity.time.start)" />
             </VCol>
+          </VRow>
+          <VRow>
+            <VCol md="12" lg="6">
+              <Map />
+            </VCol>
             <VCol md="12" lg="6">
               <VCard flat>
-                <VCardText>
+                <VCardText class="pa-0">
                   <div class="d-flex mb-4 mt-4 mt-md-0 flex-fill" style="gap: 16px">
                     <ActivityStat
                       :includeBorder="true"
@@ -68,11 +73,34 @@
                       </tr>
                     </tbody>
                   </VSimpleTable>
+                  <HRGauge :HR="activity.HR.avg" />
+                  <VSimpleTable>
+                    <tbody>
+                      <tr>
+                        <th>Z1</th>
+                        <td v-text="Z1" />
+                      </tr>
+                      <tr>
+                        <th>Z2</th>
+                        <td v-text="Z2" />
+                      </tr>
+                      <tr>
+                        <th>Z3</th>
+                        <td v-text="Z3" />
+                      </tr>
+                      <tr>
+                        <th>Z4</th>
+                        <td v-text="Z4" />
+                      </tr>
+                      <tr></tr>
+                      <tr>
+                        <th>Z5</th>
+                        <td v-text="Z5" />
+                      </tr>
+                    </tbody>
+                  </VSimpleTable>
                 </VCardText>
               </VCard>
-            </VCol>
-            <VCol md="12" lg="6">
-              <Map />
             </VCol>
           </VRow>
 
@@ -113,12 +141,15 @@ import { DateTime, Duration } from 'luxon';
 import Map from '@/components/Map.vue';
 import PaceChart from '@/components/graphs/Pace.vue';
 import SpeedChart from '@/components/graphs/Speed.vue';
-import { formatDateTime, formatTime, toKM } from '@/helpers/Units';
+import {
+  formatDateTime, formatTime, percentageOf, toKM,
+} from '@/helpers/Units';
 import ActivityStat from '@/components/ActivityStat.vue';
 import ElevationChart from '@/components/graphs/Elevation.vue';
 import HRChart from '@/components/graphs/HR.vue';
 import Laps from '@/components/Laps.vue';
-import { SPLIT } from '@/models/Activity';
+import Activity, { SPLIT } from '@/models/Activity';
+import HRGauge from '@/components/HR-gauge.vue';
 
 export default Vue.extend({
   name: 'Activity',
@@ -156,9 +187,10 @@ export default Vue.extend({
     ElevationChart,
     HRChart,
     Laps,
+    HRGauge,
   },
   computed: {
-    ...mapState(['split', 'activityData', 'activity', 'progress']),
+    ...mapState(['split', 'activityData', 'activity', 'progress', 'age']),
     processing: {
       get() {
         return this.$store.state.processing;
@@ -166,6 +198,21 @@ export default Vue.extend({
       set(value: boolean) {
         this.$store.commit('setProcessing', value);
       },
+    },
+    Z1() {
+      return `${formatTime(Duration.fromMillis((this.activity as Activity).HR.zones[1]))} (TBC%)`;
+    },
+    Z2() {
+      return `${formatTime(Duration.fromMillis((this.activity as Activity).HR.zones[2]))} (TBC%)`;
+    },
+    Z3() {
+      return `${formatTime(Duration.fromMillis((this.activity as Activity).HR.zones[3]))} (TBC%)`;
+    },
+    Z4() {
+      return `${formatTime(Duration.fromMillis((this.activity as Activity).HR.zones[4]))} (TBC%)`;
+    },
+    Z5() {
+      return `${formatTime(Duration.fromMillis((this.activity as Activity).HR.zones[5]))} (TBC%)`;
     },
   },
   mounted() {
@@ -182,9 +229,15 @@ export default Vue.extend({
   },
   watch: {
     split(value: SPLIT) {
-      this.activity.setSplit(value);
+      (this.activity as Activity).setSplit(value);
       this.processing = true;
-      this.activity.processSegments(true);
+      (this.activity as Activity).processSegments(true);
+      this.processing = false;
+      this.$store.commit('addActivity', this.activity);
+    },
+    age(age: number) {
+      this.processing = true;
+      (this.activity as Activity).reProcessHR(age, (this.activity as Activity).points);
       this.processing = false;
       this.$store.commit('addActivity', this.activity);
     },

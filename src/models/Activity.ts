@@ -20,14 +20,16 @@ export default class Activity extends Stats {
 
   public segments: Segment[];
 
-  protected split: SPLIT;
+  public split: SPLIT;
 
   public name: string;
 
-  constructor(name: string) {
-    super();
-    this.name = name;
+  public age: number;
 
+  constructor(name: string, age: number) {
+    super(age);
+    this.name = name;
+    this.age = age;
     this.segments = [];
     this.points = [];
     this.split = SPLIT.KM;
@@ -90,20 +92,6 @@ export default class Activity extends Stats {
         outerResolve();
       });
     });
-  }
-
-  public toObj(): any {
-    return {
-      name: this.name,
-      points: this.points,
-      time: this.time,
-      distance: this.elapsedDistance,
-      HR: this.HR,
-      pace: this.pace,
-      speed: this.speed,
-      cadence: this.cadence,
-      elevation: this.elevation,
-    };
   }
 
   public setDuration(): void {
@@ -196,6 +184,7 @@ export default class Activity extends Stats {
 
       this.segments.push(
         createSegment(
+          this.age,
           points,
           index !== 0
             ? {
@@ -217,6 +206,7 @@ export default class Activity extends Stats {
 
       this.segments.push(
         createSegment(
+          this.age,
           points,
           this.segments.length !== 0
             ? {

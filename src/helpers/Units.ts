@@ -34,4 +34,8 @@ export function toDegree(number: number): number {
 export function toRadian(number: number): number {
   return (number * Math.PI) / 180;
 }
+
+export function percentageOf(percentage: number, total: number): number {
+  return (percentage / 100) * total;
+}
 export default {};

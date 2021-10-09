@@ -46,7 +46,7 @@
               <VListItemSubtitle>This is used to calcuate HR zones</VListItemSubtitle>
             </VListItemContent>
             <VListItemAction>
-              <VTextField v-model="age"></VTextField>
+              <VTextField v-model="age" :loading="processing"></VTextField>
             </VListItemAction>
           </VListItem>
         </VList>

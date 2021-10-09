@@ -89,7 +89,7 @@ export default Vue.extend({
         points.push(point);
       });
 
-      const activity = new Activity(this.activityData.gpx.trk.name);
+      const activity = new Activity(this.activityData.gpx.trk.name, this.$store.state.age);
       activity.setSplit(this.split);
       activity.setStartTime(this.activityData.gpx.metadata.time);
       activity.setEndTime(

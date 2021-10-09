@@ -3,10 +3,11 @@ import Point from '@/models/Point';
 import Segment from '@/models/Segment';
 
 export function createSegment(
+  age: number,
   points: Point[],
   elapsed: { duration: Duration; distance: number } | undefined,
 ): Segment {
-  const seg = new Segment();
+  const seg = new Segment(age);
 
   seg.addPoints(points);
 

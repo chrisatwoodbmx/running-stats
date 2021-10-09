@@ -1,4 +1,5 @@
 import { Feature, Geometry, GeoJsonProperties } from 'mapbox-gl';
+import { HRZones } from '@/helpers/heart-rate.d';
 import Point from './Point';
 import { Long, Lat } from './Point.d';
 
@@ -9,12 +10,15 @@ export interface AverageObj {
 }
 export interface HRAverage extends AverageObj {
   zones: {
+    [index: number]: number;
+    0: number;
     1: number;
     2: number;
     3: number;
     4: number;
     5: number;
   };
+  zoneBuckets: HRZones;
 }
 export interface GraphItem {
   time: string;

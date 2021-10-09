@@ -2,6 +2,7 @@ import { Duration, DateTime } from 'luxon';
 import { formatTime } from '@/helpers/Units';
 import { HRAverage, AverageObj, GraphItem } from './Activity.d';
 import Point from './Point';
+import { calculateZones, getZone } from '@/helpers/heat-rate';
 
 export default class Stats {
   public elapsedDistance: number;
@@ -38,7 +39,7 @@ export default class Stats {
     pace: GraphItem[];
   };
 
-  constructor() {
+  constructor(age: number) {
     const currentTime = DateTime.local();
     this.time = { total: currentTime, start: currentTime, end: currentTime };
     this.pace = { min: { value: 999 }, avg: -1, max: { value: -1 } };
@@ -49,12 +50,14 @@ export default class Stats {
       avg: -1,
       max: { value: -1 },
       zones: {
+        0: 0,
         1: 0,
         2: 0,
         3: 0,
         4: 0,
         5: 0,
       },
+      zoneBuckets: calculateZones(age),
     };
     this.elevation = {
       min: 999,
@@ -157,6 +160,9 @@ export default class Stats {
       x: point.elapsedDuration.as('seconds'),
     });
 
+    /* get Zone */
+    this.processZoneDuration(point);
+
     if (HR > this.HR.max.value) {
       this.HR.max.point = point;
       this.HR.max.value = HR;
@@ -165,6 +171,32 @@ export default class Stats {
       this.HR.min.point = point;
       this.HR.min.value = HR;
     }
+  }
+
+  public processZoneDuration(point: Point): void {
+    const zone = getZone(point.HR, this.HR.zoneBuckets);
+
+    this.HR.zones[zone] += point.duration.toMillis();
+  }
+
+  public resetHRCalculation(): void {
+    this.HR.zones = {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+  }
+
+  public reProcessHR(age: number, points: Point[]): void {
+    this.resetHRCalculation();
+    this.HR.zoneBuckets = calculateZones(age);
+
+    points.forEach((point) => {
+      this.processZoneDuration(point);
+    });
   }
 
   private setSpeedBand(points: Point[]) {
