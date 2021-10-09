@@ -15,6 +15,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { mapState } from 'vuex';
 import { ShowLapMarkers } from '@/map-controls/dropdown';
+import Activity from '@/models/Activity';
 
 export default Vue.extend({
   data() {
@@ -25,10 +26,17 @@ export default Vue.extend({
         'pk.eyJ1IjoiY2hyaXNhdHdvb2RibXgiLCJhIjoiY2pxcXI1cm91MGUwZTQzcGY4MTVzOGlteCJ9.XoKxWoArb_EWpt_xdrLlWQ',
       center: [0, 0] as [number, number],
       map: {} as mapboxgl.Map,
+      currentSplit: '',
     };
   },
-  computed: mapState(['activity']),
+  computed: {
+    ...mapState(['activity']),
+    showLapMarkers() {
+      return new ShowLapMarkers(this.activity.segments, true);
+    },
+  },
   async mounted() {
+    this.currentSplit = this.activity.split;
     this.center = this.activity.points[0].lngLat();
     await this.createMap();
     this.addLapMarkers();
@@ -37,19 +45,20 @@ export default Vue.extend({
     // eslint-disable-next-line func-names
     activity: {
       async handler(value) {
-        console.log(value);
-        await this.createMap();
-        this.addLapMarkers(true);
+        if (this.currentSplit !== value.split) {
+          this.currentSplit = value.split;
+
+          (this.map as mapboxgl.Map).remove();
+          await this.createMap();
+          this.addLapMarkers(true);
+        }
       },
       deep: true,
     },
   },
-  updated() {
-    console.log('updated');
-  },
   methods: {
     addLapMarkers(reRender = false) {
-      this.map.addControl(new ShowLapMarkers(this.activity.segments, reRender), 'top-left');
+      this.map.addControl(this.showLapMarkers, 'top-left');
     },
     async createMap() {
       try {
@@ -67,7 +76,7 @@ export default Vue.extend({
           features: [] as any[],
         };
 
-        this.activity.points.forEach((point, index) => {
+        (this.activity as Activity).points.forEach((point, index) => {
           const hsl = `hsl(${point.speedBand}, 100%, 50%)`;
 
           if (index !== this.activity.points.length - 1) {
