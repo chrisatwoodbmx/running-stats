@@ -61,7 +61,9 @@ describe('Unit helper', () => {
   test('Format datetime', () => {
     const currentDateTime = DateTime.fromISO('2021-10-09T20:53:39+0000');
 
-    expect(formatDateTime(currentDateTime)).toBe('9 October 2021, 21:53 BST');
+    expect(formatDateTime(currentDateTime)).toBe(
+      currentDateTime.toLocaleString(DateTime.DATETIME_FULL),
+    );
   });
   test('Meters to KM per min', () => {
     expect(metersToKmPerMinute(1)).toBe(0.05999988000024);

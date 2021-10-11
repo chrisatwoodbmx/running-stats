@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon';
 
-import { TouchPitchHandler } from 'mapbox-gl';
 import Point from './Point';
 import { Lat, Long } from './Point.d';
 // eslint-disable-next-line import/no-cycle
