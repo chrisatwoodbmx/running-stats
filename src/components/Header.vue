@@ -49,6 +49,15 @@
               <VTextField v-model="age" :loading="processing"></VTextField>
             </VListItemAction>
           </VListItem>
+          <VListItem>
+            <VListItemContent>
+              <VListItemTitle>Map view</VListItemTitle>
+              <VListItemSubtitle>Map apperance</VListItemSubtitle>
+            </VListItemContent>
+            <VListItemAction>
+              <VSelect v-model="statView" :items="views" :loading="processing"></VSelect>
+            </VListItemAction>
+          </VListItem>
         </VList>
       </VCard>
     </VMenu>
@@ -58,6 +67,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { SPLIT } from '@/helpers/Units';
+import { StatViewType } from '@/models/Point.d';
 
 export default Vue.extend({
   computed: {
@@ -82,6 +92,14 @@ export default Vue.extend({
         this.$store.commit('setSplit', split);
       },
     },
+    statView: {
+      get() {
+        return this.$store.state.statView;
+      },
+      set(statView: StatViewType) {
+        this.$store.commit('setStatView', statView);
+      },
+    },
   },
   data() {
     return {
@@ -90,6 +108,12 @@ export default Vue.extend({
         { value: SPLIT.KM, text: 'KMs' },
         { value: SPLIT.MILE, text: 'Miles' },
         { value: SPLIT.LAP, text: '400m laps' },
+      ],
+      views: [
+        { value: 'speed', text: 'Speed' },
+        'HR',
+        { value: 'elevation', text: 'Elevation' },
+        { value: 'cadence', text: 'Cadence' },
       ],
     };
   },
