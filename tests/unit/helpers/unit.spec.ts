@@ -11,6 +11,7 @@ import {
   percentageOf,
   toDegree,
   toRadian,
+  RPMtoSPM,
 } from '@/helpers/Units';
 
 describe('Unit helper', () => {
@@ -76,5 +77,9 @@ describe('Unit helper', () => {
   });
   test('percentage of a number', () => {
     expect(percentageOf(50, 4)).toBe(2);
+  });
+
+  test('RPM to SPM', () => {
+    expect(RPMtoSPM(40)).toBe(80);
   });
 });

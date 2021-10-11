@@ -119,4 +119,14 @@ export function percentageOf(percentage: number, total: number): number {
   return (percentage / 100) * total;
 }
 
+/**
+ * Convert RPM to SPM
+ *
+ * @param {number} rpm Revs per minute
+ * @returns {number} Steps per minute
+ */
+export function RPMtoSPM(rpm: number): number {
+  return rpm * 2;
+}
+
 export default {};
