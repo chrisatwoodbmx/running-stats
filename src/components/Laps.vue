@@ -60,7 +60,7 @@ export default Vue.extend({
         elapsedDuration,
         avgPace: pace.avg,
         maxPace: pace.min,
-        cadence: seg.cadence.avg,
+        cadence: seg.cadence.avg.toFixed(0),
         avgHR,
         maxHR,
         elevationAscent,
