@@ -64,6 +64,10 @@
                         <td v-text="displayTime(activity.elapsedDuration)" />
                       </tr>
                       <tr>
+                        <th>Average cadence (SPM)</th>
+                        <td v-text="`${activity.cadence.avg.toFixed(0)} spm`" />
+                      </tr>
+                      <tr>
                         <th>Average HR</th>
                         <td v-text="`${activity.HR.avg.toFixed(0)} bpm`" />
                       </tr>
