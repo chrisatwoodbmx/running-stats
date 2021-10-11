@@ -2,7 +2,18 @@
   <div>
     <div id="map" style="height: 300px"></div>
     <div class=" d-block text-center ">
-      <span id="hsl-preview-label" class="text-subtitle-1">Speed band (Slow - Fast)</span>
+      <span id="hsl-preview-label" class="text-subtitle-1" v-if="statView === 'speed'"
+        >Speed (Slow - Fast)</span
+      >
+      <span id="hsl-preview-label" class="text-subtitle-1" v-if="statView === 'HR'"
+        >HR (High to low)</span
+      >
+      <span id="hsl-preview-label" class="text-subtitle-1" v-if="statView === 'elevation'"
+        >Elevation (Low - High)</span
+      >
+      <span id="hsl-preview-label" class="text-subtitle-1" v-if="statView === 'cadence'"
+        >Cadence (Low - High)</span
+      >
       <span aria-labelledby="hsl-preview-label" class="mx-auto d-block hsl-previous" />
     </div>
   </div>
@@ -17,6 +28,7 @@ import { mapState } from 'vuex';
 import { ShowLapMarkers } from '@/map-controls/dropdown';
 import Activity from '@/models/Activity';
 import { SPLIT } from '@/helpers/Units';
+import { StatViewType } from '@/models/Point.d';
 
 export default Vue.extend({
   data() {
@@ -30,7 +42,7 @@ export default Vue.extend({
       currentSplit: SPLIT.KM as SPLIT,
     };
   },
-  computed: mapState(['activity']),
+  computed: mapState(['activity', 'statView']),
 
   async mounted() {
     this.currentSplit = this.activity.split;
@@ -51,6 +63,14 @@ export default Vue.extend({
         }
       },
       deep: true,
+    },
+    statView(value: StatViewType) {
+      this.map.setLayoutProperty('route--speed', 'visibility', 'none');
+      this.map.setLayoutProperty('route--HR', 'visibility', 'none');
+      this.map.setLayoutProperty('route--elevation', 'visibility', 'none');
+      this.map.setLayoutProperty('route--cadence', 'visibility', 'none');
+
+      this.map.setLayoutProperty(`route--${value}`, 'visibility', 'visible');
     },
   },
   methods: {
@@ -77,15 +97,21 @@ export default Vue.extend({
         };
 
         (this.activity as Activity).points.forEach((point, index) => {
-          const hsl = `hsl(${point.speedBand}, 100%, 50%)`;
+          const speedHSL = `hsl(${point.stat.speed}, 100%, 50%)`;
+          const HRHSL = `hsl(${point.stat.HR}, 100%, 50%)`;
+          const elevationHSL = `hsl(${point.stat.elevation}, 100%, 50%)`;
+          const cadenceHSL = `hsl(${point.stat.cadence}, 100%, 50%)`;
 
           if (index !== this.activity.points.length - 1) {
             geojson.features.push({
               type: 'Feature',
               properties: {
-                speedColour: hsl,
                 speed: point.speed,
-                speedBand: point.speedBand,
+                stat_speed: speedHSL,
+                stat_HR: HRHSL,
+                stat_cadence: cadenceHSL,
+                stat_elevation: elevationHSL,
+
                 index,
               },
               geometry: {
@@ -102,7 +128,7 @@ export default Vue.extend({
           });
 
           this.map.addLayer({
-            id: 'route',
+            id: 'route--speed',
             type: 'line',
             source: 'route',
             layout: {
@@ -110,10 +136,55 @@ export default Vue.extend({
               'line-cap': 'round',
             },
             paint: {
-              'line-color': ['get', 'speedColour'],
+              'line-color': ['get', 'stat_speed'],
               'line-width': 4,
             },
           });
+          this.map.addLayer({
+            id: 'route--HR',
+            type: 'line',
+            source: 'route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': ['get', 'stat_HR'],
+              'line-width': 4,
+            },
+          });
+          this.map.addLayer({
+            id: 'route--cadence',
+            type: 'line',
+            source: 'route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': ['get', 'stat_cadence'],
+              'line-width': 4,
+            },
+          });
+          this.map.addLayer({
+            id: 'route--elevation',
+            type: 'line',
+            source: 'route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': ['get', 'stat_elevation'],
+              'line-width': 4,
+            },
+          });
+          this.map.setLayoutProperty('route--speed', 'visibility', 'none');
+          this.map.setLayoutProperty('route--HR', 'visibility', 'none');
+          this.map.setLayoutProperty('route--elevation', 'visibility', 'none');
+          this.map.setLayoutProperty('route--cadence', 'visibility', 'none');
+
+          this.map.setLayoutProperty(`route--${this.statView}`, 'visibility', 'visible');
         });
         this.map.on('click', 'route', (e: any) => {
           let popupContent = '';

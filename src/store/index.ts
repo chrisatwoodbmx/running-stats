@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import Activity from '@/models/Activity';
 import { SPLIT } from '@/helpers/Units';
+import { StatViewType } from '@/models/Point.d';
 
 Vue.use(Vuex);
 
@@ -13,6 +14,7 @@ export default new Vuex.Store({
     split: SPLIT.KM,
     processing: false,
     age: 22,
+    statView: 'speed' as StatViewType,
   },
   mutations: {
     addActivityData(state, data: any) {
@@ -33,6 +35,9 @@ export default new Vuex.Store({
     },
     setAge(state, age: number) {
       state.age = age;
+    },
+    setStatView(state, statView: StatViewType) {
+      state.statView = statView;
     },
   },
   actions: {},
