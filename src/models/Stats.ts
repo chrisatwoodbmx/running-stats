@@ -87,8 +87,8 @@ export default class Stats {
       this.processSpeed(point, time);
       this.processPace(point, time);
       this.processElevation(point, time);
-      this.processElevation(point, time);
       this.processHR(point, time);
+      this.processCadence(point, time);
     });
 
     const totalSpeed = this.graphs.speed.reduce((acc, val) => acc + val.y, 0);
@@ -100,9 +100,12 @@ export default class Stats {
     const totalHR = this.graphs.HR.reduce((acc, val) => acc + val.y, 0);
     this.HR.avg = totalHR / this.graphs.HR.length;
 
+    const totalCadence = this.graphs.cadence.reduce((acc, val) => acc + val.y, 0);
+    this.cadence.avg = totalCadence / this.graphs.cadence.length;
+
     this.elevation.total = this.elevation.max - this.elevation.min;
 
-    if (withSpeedBand) this.setSpeedBand(points);
+    if (withSpeedBand) this.setLineStats(points);
   }
 
   private processSpeed(point: Point, time: string) {
@@ -173,6 +176,27 @@ export default class Stats {
     }
   }
 
+  private processCadence(point: Point, time: string) {
+    const { cadence } = point;
+    if (Number.isNaN(cadence)) return;
+    if (cadence.rpm <= 0) return;
+
+    this.graphs.cadence.push({
+      time,
+      y: cadence.spm,
+      x: point.elapsedDuration.as('seconds'),
+    });
+
+    if (cadence.spm !== 0 && cadence.spm > this.cadence.max.value) {
+      this.cadence.max.point = point;
+      this.cadence.max.value = cadence.spm;
+    }
+    if (cadence.spm > 1 && cadence.spm < this.cadence.min.value) {
+      this.cadence.min.point = point;
+      this.cadence.min.value = cadence.spm;
+    }
+  }
+
   public processZoneDuration(point: Point): void {
     const zone = getZone(point.HR, this.HR.zoneBuckets);
 
@@ -199,9 +223,20 @@ export default class Stats {
     });
   }
 
-  private setSpeedBand(points: Point[]) {
+  /**
+   * Set line spacing for:
+   *  - Speed
+   *  - HR
+   *  - elevation
+   *  - Cadence
+   * @param {Point[]} points Array of point data
+   */
+  private setLineStats(points: Point[]) {
     points.forEach((point) => {
-      point.setSpeedBand(this.speed.min.value, this.speed.max.value);
+      point.setSpeedStat(this.speed.min.value, this.speed.max.value);
+      point.setHRStat(this.HR.min.value, this.HR.max.value);
+      point.setCadenceStat(this.cadence.min.value, this.cadence.max.value);
+      point.setElevationStat(this.elevation.min, this.elevation.max);
     });
   }
 

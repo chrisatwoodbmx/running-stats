@@ -1,8 +1,9 @@
 import { DateTime, Duration } from 'luxon';
 import { normalise } from '@/helpers/Normalise';
 import {
-  Lat, LatLong, Long, LongLat,
+  Lat, LatLong, Long, LongLat, LineStat,
 } from './Point.d';
+import { RPMtoSPM } from '@/helpers/Units';
 
 export default class Point {
   public index: number;
@@ -15,7 +16,7 @@ export default class Point {
 
   public HR!: number;
 
-  public cadence!: number;
+  public cadence: { rpm: number; spm: number };
 
   public distance: number;
 
@@ -31,7 +32,7 @@ export default class Point {
   /* Meters per second */
   public speed: number;
 
-  public speedBand!: number;
+  public stat: LineStat;
 
   public fastest: boolean;
 
@@ -52,19 +53,24 @@ export default class Point {
     this.timestamp = DateTime.fromISO(timestamp);
     this.pace = 0;
     this.speed = 1;
-    this.speedBand = 1;
+    this.stat = {} as LineStat;
     this.elapsedDistance = 0;
     this.elapsedDuration = Duration.fromMillis(0);
     this.distance = 0;
     this.fastest = false;
     this.slowest = false;
+    this.cadence = { rpm: 0, spm: 0 };
     this.elevation = { value: 0, change: 0 };
     this.duration = Duration.fromMillis(0);
     this.replacement = replacement || false;
   }
 
   public setExtras(extras: { cadence?: number; heartRate?: number }): void {
-    if (extras.cadence) this.cadence = extras.cadence;
+    if (extras.cadence) {
+      this.cadence.rpm = extras.cadence || 0;
+      this.cadence.spm = RPMtoSPM(extras.cadence || 0);
+    }
+
     if (extras.heartRate) this.HR = extras.heartRate;
   }
 
@@ -133,8 +139,20 @@ export default class Point {
     this.fastest = true;
   }
 
-  public setSpeedBand(min: number, max: number): void {
-    this.speedBand = normalise(this.speed, min, max, 255);
+  public setSpeedStat(min: number, max: number): void {
+    this.stat.speed = normalise(this.speed, min, max, 255);
+  }
+
+  public setHRStat(min: number, max: number): void {
+    this.stat.HR = normalise(this.HR, min, max, 255);
+  }
+
+  public setCadenceStat(min: number, max: number): void {
+    this.stat.cadence = normalise(this.cadence.spm, min, max, 255);
+  }
+
+  public setElevationStat(min: number, max: number): void {
+    this.stat.elevation = normalise(this.elevation.value, min, max, 255);
   }
 
   public setShadowPoint(point: Point): void {
