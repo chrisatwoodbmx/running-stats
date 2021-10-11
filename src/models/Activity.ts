@@ -53,7 +53,6 @@ export default class Activity extends Stats {
     return new Promise((outerResolve) => {
       new Promise<void>((resolve): void => {
         this.points.forEach(async (point, i, array) => {
-          console.log(i);
           if (i === this.points.length - 1) return;
           const nextPoint = this.points[i + 1];
           const previousPoint = this.points[i - 1];
@@ -89,8 +88,6 @@ export default class Activity extends Stats {
         });
       }).then(() => {
         if (!reProcess) this.processAverages(this.points);
-
-        console.log('outer done');
         outerResolve();
       });
     });
@@ -113,7 +110,7 @@ export default class Activity extends Stats {
       const remainder = Math.floor(division);
 
       if (remainder === 1) {
-        const { speedBand } = point;
+        const { stat } = point;
         splits += 1;
 
         /* Check if it's exactly dividable into the this.split */
@@ -148,7 +145,7 @@ export default class Activity extends Stats {
           splitPoint1.setPace(point.pace);
           splitPoint1.setSpeed(point.speed);
           splitPoint1.setElevationChange(point.elevation.change);
-          splitPoint1.speedBand = speedBand;
+          splitPoint1.stat = stat;
           this.points[index - 1].setShadowPoint(splitPoint1);
 
           /* Create new shadow point for the actual remainder */
@@ -170,7 +167,7 @@ export default class Activity extends Stats {
           splitPoint2.setPace(point.pace);
           splitPoint2.setSpeed(point.speed);
           splitPoint2.setElevationChange(point.elevation.change);
-          splitPoint2.speedBand = speedBand;
+          splitPoint2.stat = stat;
           point.setShadowPoint(splitPoint2);
         }
         return true;
@@ -219,8 +216,6 @@ export default class Activity extends Stats {
         ),
       );
     }
-
-    console.log('done');
   }
 
   public setSplit(split: SPLIT): void {
