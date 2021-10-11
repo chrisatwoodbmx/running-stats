@@ -6,7 +6,7 @@ export interface FullSegment {
   elapsedDuration: string;
   avgPace: string;
   maxPace: string;
-  cadence: number;
+  cadence: string;
   avgHR: string;
   maxHR: string;
   elevationAscent: string;
